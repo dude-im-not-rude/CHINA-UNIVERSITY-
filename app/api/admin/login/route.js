@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSession, verifyPassword, verifyTotp } from "../../../../../lib/admin-auth";
+import { createSession, verifyPassword, verifyTotp } from "../../../../lib/admin-auth";
 
 export async function POST(request){
   try{
