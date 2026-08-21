@@ -5,7 +5,7 @@ const db = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 const mode = process.argv[2] || 'cucas';
 const CUCAS_SEEDS = (process.env.CUCAS_SEED_URLS || 'https://bachelor.cucas.cn/search?tag=2-137|https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0-0-0|https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0').split('|').map(s => s.trim()).filter(Boolean);
 const CSCA_SEEDS = (process.env.CSCA_SEED_URLS || 'https://csca.cn/').split('|').map(s => s.trim()).filter(Boolean);
-const USER_AGENT = 'ChinaUniTracker-Monitor/1.3 (+https://china-university-tracker-12.vercel.app)';
+const USER_AGENT = 'ChinaUniTracker-Monitor/1.4 (+https://china-university-tracker-12.vercel.app)';
 const ACCEPTED_YEARS = ['2026', '2027'];
 const FETCH_TIMEOUT_MS = 30000;
 const MAX_RETRIES = 4;
@@ -135,16 +135,20 @@ async function upsertProgram(record) {
   } else if (!uniRows[0].official_website && record.officialCandidate) {
     await db`UPDATE universities SET official_website=${record.officialCandidate}, updated_at=now() WHERE id=${universityId}`;
   }
-  const programRows = await db`SELECT id FROM programs WHERE university_id=${universityId} AND lower(program_name)=lower(${record.programName}) LIMIT 1`;
+
+  // Program identity is intentionally strict: university + program name + degree + teaching language.
+  // Bachelor and Master records must never be merged, even when the program name is identical.
+  const programRows = await db`SELECT id FROM programs WHERE university_id=${universityId} AND lower(program_name)=lower(${record.programName}) AND lower(degree_level)=lower(${record.degree}) AND lower(language)=lower(${record.language}) LIMIT 1`;
   let programId = programRows[0]?.id;
-  if (programId) await db`UPDATE programs SET degree_level=${record.degree}, language=${record.language}, english_taught=${record.language === 'English'}, duration_years=${record.duration}, tuition_fee=${record.tuition}, tuition_currency='RMB', official_program_url=${record.url}, is_active=true, updated_at=now() WHERE id=${programId}`;
+  if (programId) await db`UPDATE programs SET english_taught=${record.language === 'English'}, duration_years=${record.duration}, tuition_fee=${record.tuition}, tuition_currency='RMB', official_program_url=${record.url}, is_active=true, updated_at=now() WHERE id=${programId}`;
   else { const inserted = await db`INSERT INTO programs (university_id, program_name, degree_level, language, english_taught, duration_years, tuition_fee, tuition_currency, official_program_url, is_active) VALUES (${universityId}, ${record.programName}, ${record.degree}, ${record.language}, ${record.language === 'English'}, ${record.duration}, ${record.tuition}, 'RMB', ${record.url}, true) RETURNING id`; programId = inserted[0].id; }
+
   const intake = intakeName(record.starting);
   const semesterStart = isoDate(record.starting);
   const deadline = isoDate(record.deadline);
-  const existingIntake = await db`SELECT id FROM intakes WHERE program_id=${programId} AND intake_name=${intake} LIMIT 1`;
+  const existingIntake = await db`SELECT id FROM intakes WHERE program_id=${programId} AND intake_name=${intake} AND semester_start_date=${semesterStart} LIMIT 1`;
   const status = record.openForApplication ? 'open' : (deadline && new Date(deadline) < new Date() ? 'closed' : 'upcoming');
-  if (existingIntake[0]) await db`UPDATE intakes SET application_deadline=${deadline}, semester_start_date=${semesterStart}, application_status=${status}, notes='CUCAS discovery record. Verify dates against the university official notice.' WHERE id=${existingIntake[0].id}`;
+  if (existingIntake[0]) await db`UPDATE intakes SET application_deadline=${deadline}, application_status=${status}, notes='CUCAS discovery record. Verify dates against the university official notice.' WHERE id=${existingIntake[0].id}`;
   else await db`INSERT INTO intakes (program_id, intake_name, application_deadline, semester_start_date, application_status, notes) VALUES (${programId}, ${intake}, ${deadline}, ${semesterStart}, ${status}, 'CUCAS discovery record. Verify dates against the university official notice.')`;
   const req = await db`SELECT id FROM admission_requirements WHERE program_id=${programId} LIMIT 1`;
   if (req[0]) await db`UPDATE admission_requirements SET csca_required=${record.cscaRequired}, csca_subjects=${record.subjects}, updated_at=now() WHERE id=${req[0].id}`;
@@ -155,28 +159,42 @@ async function upsertProgram(record) {
   return true;
 }
 
-async function discoverFromPage(url, programPages, searchPages) {
+async function discoverFromPage(url, programPages, discoveryPages) {
   const page = await fetchText(url);
-  searchPages.add(page.url);
+  discoveryPages.add(page.url);
   const changed = await recordSnapshot(`cucas:${url}`, page.url, cleanHtml(page.text), 'CUCAS discovery source changed');
-  for (const link of links(page.text, /(?:^|\.)cucas\.cn\/program\//i, page.url)) programPages.add(link);
+
+  // CUCAS search pages can be JS-heavy or blocked from GitHub Actions. School pages are
+  // much more reliably indexed and contain direct /program/ links, so follow both layers.
+  for (const link of links(page.text, /(?:^|\.)cucas\.cn\/[^?#"']*\/program\//i, page.url)) programPages.add(link);
+
+  const schoolLinks = links(page.text, /(?:^|\.)school\.cucas\.cn\//i, page.url);
+  for (const link of schoolLinks) {
+    try {
+      const path = new URL(link).pathname;
+      if (/\/program\//i.test(path)) continue;
+      if (/\/[^/]+-\d+\/?$/i.test(path)) discoveryPages.add(link);
+    } catch {}
+  }
+
+  // Preserve search/discovery pagination where it is available.
   for (const link of links(page.text, /(?:^|\.)cucas\.cn\/search(?:[/?]|$)/i, page.url)) {
-    if (!searchPages.has(link)) searchPages.add(link);
+    if (!discoveryPages.has(link)) discoveryPages.add(link);
   }
   return { page, changed };
 }
 
 async function runCucas() {
   const programPages = new Set();
-  const searchPages = new Set();
+  const discoveryPages = new Set();
   const queue = [...CUCAS_SEEDS];
   let cursor = 0;
   while (cursor < queue.length) {
     const seed = queue[cursor++];
-    if (searchPages.has(seed)) continue;
+    if (discoveryPages.has(seed)) continue;
     try {
-      const { page, changed } = await discoverFromPage(seed, programPages, searchPages);
-      for (const link of searchPages) if (!queue.includes(link)) queue.push(link);
+      const { page, changed } = await discoverFromPage(seed, programPages, discoveryPages);
+      for (const link of discoveryPages) if (!queue.includes(link)) queue.push(link);
       console.log(`[CUCAS] ${seed} ${changed ? 'changed' : 'unchanged'}; ${programPages.size} program links found; ${queue.length} discovery pages queued`);
       if (page.text.length < 500) console.warn(`[CUCAS] suspiciously short response from ${seed}`);
     } catch (error) {
