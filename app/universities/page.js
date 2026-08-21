@@ -11,7 +11,7 @@ export default async function Page({ searchParams }) {
       <input name="q" defaultValue={filters.q || ''} placeholder="Search university, city or program..."/>
       <select name="degree" defaultValue={filters.degree || ''}><option value="">All degrees</option><option value="Bachelor">Bachelor</option><option value="Master">Master</option></select>
       <select name="type" defaultValue={filters.type || ''}><option value="">All types</option><option value="public">Public</option><option value="private">Private</option></select>
-      <select name="province" defaultValue={filters.province || ''}><option value="">All provinces</option><option>Hubei</option><option>Heilongjiang</option><option>Fujian</option><option>Zhejiang</option><option>Shanghai</option></select>
+      <select name="province" defaultValue={filters.province || ''}><option value="">All provinces</option><option>Guangdong</option><option>Heilongjiang</option><option>Fujian</option><option>Zhejiang</option><option>Shanghai</option></select>
       <select name="classification" defaultValue={filters.classification || ''}><option value="">All classifications</option><option value="c9">C9</option><option value="985">985</option><option value="211">211</option><option value="double-first-class">Double First-Class</option></select>
       <select name="major" defaultValue={filters.major || ''}><option value="">All majors</option><option>Business</option><option>Economics</option><option>Engineering</option><option>Medicine</option><option>Computer Science</option></select>
       <label className="check"><input type="checkbox" name="english" value="true" defaultChecked={filters.english === 'true'}/> English-taught</label>
