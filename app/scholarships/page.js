@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getScholarships } from '../../university-queries';
+import { getScholarships } from '../university-queries';
 
 export const dynamic = 'force-dynamic';
 
