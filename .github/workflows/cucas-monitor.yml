@@ -17,5 +17,5 @@ jobs:
       - name: Monitor CUCAS
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          MAX_PROGRAM_PAGES: 150
+          MAX_PROGRAM_PAGES: 1000
         run: node scripts/cucas-monitor.mjs cucas
