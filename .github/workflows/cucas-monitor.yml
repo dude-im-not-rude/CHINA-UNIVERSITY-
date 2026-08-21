@@ -35,7 +35,7 @@ jobs:
       - name: Import official university programs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-program-import.mjs
+        run: node scripts/official-program-import-fixed.mjs
       - name: Normalize duplicate program records
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
