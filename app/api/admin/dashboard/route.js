@@ -1,12 +1,7 @@
 import {NextResponse} from "next/server";
 import {sql} from "@neondatabase/serverless";
-import {cookies} from "next/headers";
-import {readSession} from "../../../../lib/admin-auth";
-
-function auth(){return readSession(cookies().get("cut_admin_session")?.value)}
 
 export async function GET(){
-  if(!auth()) return NextResponse.json({error:"Unauthorized"},{status:401});
   if(!process.env.DATABASE_URL) return NextResponse.json({error:"Database is not configured"},{status:503});
   try{
     const db=sql(process.env.DATABASE_URL);

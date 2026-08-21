@@ -9,6 +9,6 @@ import SiteControls from "./site-controls";
 
 export default function GlobalUI() {
   const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) return null;
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/ashu")) return null;
   return <><MobileNav /><SiteControls /><SiteFooter /><ContactWidget /><CookieBanner /></>;
 }
