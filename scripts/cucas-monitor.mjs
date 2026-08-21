@@ -6,7 +6,6 @@ const mode = process.argv[2] || 'cucas';
 const CUCAS_SEEDS = (process.env.CUCAS_SEED_URLS || 'https://bachelor.cucas.cn/search|https://scholarship.cucas.cn/').split('|').filter(Boolean);
 const CSCA_SEEDS = (process.env.CSCA_SEED_URLS || 'https://csca.cn/').split('|').filter(Boolean);
 const USER_AGENT = 'ChinaUniTracker-Monitor/1.2 (+https://china-university-tracker-12.vercel.app)';
-const MAX_PROGRAM_PAGES = Number(process.env.MAX_PROGRAM_PAGES || 1000);
 const ACCEPTED_YEARS = ['2026', '2027'];
 
 if (!db) throw new Error('DATABASE_URL is required for monitoring.');
@@ -140,7 +139,7 @@ async function runCucas() {
       visited.add(page.url);
       const changed = await recordSnapshot(`cucas:${seed}`, page.url, cleanHtml(page.text), 'CUCAS discovery source changed');
       for (const link of links(page.text, /(?:^|\.)cucas\.cn\/program\//i, page.url)) programPages.add(link);
-      for (const link of links(page.text, /(?:^|\.)cucas\.cn\/search/i, page.url).slice(0, 50)) {
+      for (const link of links(page.text, /(?:^|\.)cucas\.cn\/search/i, page.url)) {
         if (visited.has(link)) continue;
         const child = await fetchText(link);
         visited.add(child.url);
@@ -151,11 +150,11 @@ async function runCucas() {
     } catch (error) { console.error(`[CUCAS] ${seed} failed:`, error.message); }
   }
   let imported = 0;
-  for (const url of [...programPages].slice(0, MAX_PROGRAM_PAGES)) {
+  for (const url of [...programPages]) {
     try { const page = await fetchText(url); const record = parseProgram(url, page.text); if (await upsertProgram(record)) imported++; }
     catch (error) { console.error(`[CUCAS] program failed ${url}:`, error.message); }
   }
-  console.log(`[CUCAS] processed ${Math.min(programPages.size, MAX_PROGRAM_PAGES)} program pages; imported/updated ${imported}`);
+  console.log(`[CUCAS] processed ${programPages.size} program pages; imported/updated ${imported}`);
 }
 
 async function runCsca() {
