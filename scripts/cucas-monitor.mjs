@@ -3,17 +3,42 @@ import { neon } from '@neondatabase/serverless';
 
 const db = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 const mode = process.argv[2] || 'cucas';
-const CUCAS_SEEDS = (process.env.CUCAS_SEED_URLS || 'https://bachelor.cucas.cn/search|https://scholarship.cucas.cn/').split('|').filter(Boolean);
-const CSCA_SEEDS = (process.env.CSCA_SEED_URLS || 'https://csca.cn/').split('|').filter(Boolean);
-const USER_AGENT = 'ChinaUniTracker-Monitor/1.2 (+https://china-university-tracker-12.vercel.app)';
+const CUCAS_SEEDS = (process.env.CUCAS_SEED_URLS || 'https://bachelor.cucas.cn/search?tag=2-137|https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0-0-0|https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0').split('|').map(s => s.trim()).filter(Boolean);
+const CSCA_SEEDS = (process.env.CSCA_SEED_URLS || 'https://csca.cn/').split('|').map(s => s.trim()).filter(Boolean);
+const USER_AGENT = 'ChinaUniTracker-Monitor/1.3 (+https://china-university-tracker-12.vercel.app)';
 const ACCEPTED_YEARS = ['2026', '2027'];
+const FETCH_TIMEOUT_MS = 30000;
+const MAX_RETRIES = 4;
 
 if (!db) throw new Error('DATABASE_URL is required for monitoring.');
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function fetchText(url) {
-  const response = await fetch(url, { headers: { 'user-agent': USER_AGENT, accept: 'text/html,application/xhtml+xml,application/pdf;q=0.9,*/*;q=0.8' }, redirect: 'follow' });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return { url: response.url, text: await response.text(), contentType: response.headers.get('content-type') || '' };
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'user-agent': USER_AGENT,
+          accept: 'text/html,application/xhtml+xml,application/pdf;q=0.9,*/*;q=0.8',
+          'accept-language': 'en-US,en;q=0.9',
+          'cache-control': 'no-cache',
+        },
+        redirect: 'follow',
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return { url: response.url, text: await response.text(), contentType: response.headers.get('content-type') || '' };
+    } catch (error) {
+      lastError = error;
+      if (attempt < MAX_RETRIES) await sleep(1000 * attempt);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError;
 }
 
 function cleanHtml(html) {
@@ -49,10 +74,10 @@ function numberFrom(value) {
 
 function parseProgram(url, html) {
   const text = cleanHtml(html);
-  const programName = firstMatch(text, [/Apply to\s+Chinese Universities\s+([^|]{2,100})\s+(?:Bachelor|Master|PhD|Non-degree)\b/i, /^([^|]{2,100})\s+(?:Bachelor|Master|PhD|Non-degree)\b/i]) || url.split('/').pop().replace(/-\d+\.html$/, '').replace(/-/g, ' ');
+  const programName = firstMatch(text, [/Apply to\s+Chinese Universities\s+([^|]{2,120})\s+(?:Bachelor|Master|PhD|Non-degree)\b/i, /^([^|]{2,120})\s+(?:Bachelor|Master|PhD|Non-degree)\b/i]) || url.split('/').pop().replace(/-\d+\.html$/, '').replace(/-/g, ' ');
   const degreeRaw = firstMatch(text, [/(Bachelor|Master|PhD|Non-degree)\b/i]);
-  const degree = ({ bachelor:'bachelor', master:'master', phd:'phd', 'non-degree':'other' })[(degreeRaw || '').toLowerCase()] || 'other';
-  const university = firstMatch(text, [/Apply to\s+Chinese Universities\s+([^|]{2,100})\s+Basic Information/i, /([^|]{2,100})\s+Basic Information/i]);
+  const degree = ({ bachelor: 'bachelor', master: 'master', phd: 'phd', 'non-degree': 'other' })[(degreeRaw || '').toLowerCase()] || 'other';
+  const university = firstMatch(text, [/Apply to\s+Chinese Universities\s+([^|]{2,120})\s+Basic Information/i, /([^|]{2,120})\s+Basic Information/i]);
   const starting = firstMatch(text, [/Starting Date:\s*[^|]*?([A-Z][a-z]{2}\s+\d{1,2}\s*,\s*(?:2026|2027))/i, /Starting Data[^|]*?([A-Z][a-z]{2}\s+\d{1,2}\s*,\s*(?:2026|2027))/i]);
   const deadline = firstMatch(text, [/Application Deadline:[^|]*?([A-Z][a-z]{2}\s+\d{1,2}\s*,\s*(?:2026|2027))/i]);
   const language = firstMatch(text, [/Teaching Language:\s*([^|]+?)(?:\s+Application Deadline|\s+Tuition|\s+Application Fee|$)/i]);
@@ -105,7 +130,7 @@ async function upsertProgram(record) {
   const uniRows = await db`SELECT id, official_website FROM universities WHERE lower(name_english)=lower(${record.university}) LIMIT 1`;
   let universityId = uniRows[0]?.id;
   if (!universityId) {
-    const inserted = await db`INSERT INTO universities (name_english, university_type, country, status, official_website, university_description) VALUES (${record.university}, 'other', 'China', 'active', ${record.officialCandidate}, 'Discovered from CUCAS. CUCAS is an aggregator; critical admissions details require direct university-source verification.') RETURNING id`;
+    const inserted = await db`INSERT INTO universities (name_english, university_type, country, status, official_website, university_description) VALUES (${record.university}, 'other', 'China', 'active', ${record.officialCandidate}, 'Discovered from CUCAS. Critical admissions details require direct university-source verification.') RETURNING id`;
     universityId = inserted[0].id;
   } else if (!uniRows[0].official_website && record.officialCandidate) {
     await db`UPDATE universities SET official_website=${record.officialCandidate}, updated_at=now() WHERE id=${universityId}`;
@@ -130,37 +155,55 @@ async function upsertProgram(record) {
   return true;
 }
 
+async function discoverFromPage(url, programPages, searchPages) {
+  const page = await fetchText(url);
+  searchPages.add(page.url);
+  const changed = await recordSnapshot(`cucas:${url}`, page.url, cleanHtml(page.text), 'CUCAS discovery source changed');
+  for (const link of links(page.text, /(?:^|\.)cucas\.cn\/program\//i, page.url)) programPages.add(link);
+  for (const link of links(page.text, /(?:^|\.)cucas\.cn\/search(?:[/?]|$)/i, page.url)) {
+    if (!searchPages.has(link)) searchPages.add(link);
+  }
+  return { page, changed };
+}
+
 async function runCucas() {
-  const visited = new Set();
   const programPages = new Set();
-  for (const seed of CUCAS_SEEDS) {
+  const searchPages = new Set();
+  const queue = [...CUCAS_SEEDS];
+  let cursor = 0;
+  while (cursor < queue.length) {
+    const seed = queue[cursor++];
+    if (searchPages.has(seed)) continue;
     try {
-      const page = await fetchText(seed);
-      visited.add(page.url);
-      const changed = await recordSnapshot(`cucas:${seed}`, page.url, cleanHtml(page.text), 'CUCAS discovery source changed');
-      for (const link of links(page.text, /(?:^|\.)cucas\.cn\/program\//i, page.url)) programPages.add(link);
-      for (const link of links(page.text, /(?:^|\.)cucas\.cn\/search/i, page.url)) {
-        if (visited.has(link)) continue;
-        const child = await fetchText(link);
-        visited.add(child.url);
-        await recordSnapshot(`cucas:${link}`, child.url, cleanHtml(child.text), 'CUCAS search/category source changed');
-        for (const program of links(child.text, /(?:^|\.)cucas\.cn\/program\//i, child.url)) programPages.add(program);
-      }
-      console.log(`[CUCAS] ${seed} ${changed ? 'changed' : 'unchanged'}; ${programPages.size} program links found`);
-    } catch (error) { console.error(`[CUCAS] ${seed} failed:`, error.message); }
+      const { page, changed } = await discoverFromPage(seed, programPages, searchPages);
+      for (const link of searchPages) if (!queue.includes(link)) queue.push(link);
+      console.log(`[CUCAS] ${seed} ${changed ? 'changed' : 'unchanged'}; ${programPages.size} program links found; ${queue.length} discovery pages queued`);
+      if (page.text.length < 500) console.warn(`[CUCAS] suspiciously short response from ${seed}`);
+    } catch (error) {
+      console.error(`[CUCAS] ${seed} failed after retries:`, error.message);
+    }
+    await sleep(500);
   }
   let imported = 0;
+  let failedPrograms = 0;
   for (const url of [...programPages]) {
-    try { const page = await fetchText(url); const record = parseProgram(url, page.text); if (await upsertProgram(record)) imported++; }
-    catch (error) { console.error(`[CUCAS] program failed ${url}:`, error.message); }
+    try {
+      const page = await fetchText(url);
+      const record = parseProgram(url, page.text);
+      if (await upsertProgram(record)) imported++;
+    } catch (error) {
+      failedPrograms++;
+      console.error(`[CUCAS] program failed ${url}:`, error.message);
+    }
+    await sleep(150);
   }
-  console.log(`[CUCAS] processed ${programPages.size} program pages; imported/updated ${imported}`);
+  console.log(`[CUCAS] processed ${programPages.size} program pages; imported/updated ${imported}; failed ${failedPrograms}; no artificial program-count limit applied`);
 }
 
 async function runCsca() {
   for (const seed of CSCA_SEEDS) {
     try { const page = await fetchText(seed); const changed = await recordSnapshot(`csca:${seed}`, page.url, cleanHtml(page.text), 'CSCA official source changed'); console.log(`[CSCA] ${seed} ${changed ? 'CHANGED' : 'unchanged'}`); }
-    catch (error) { console.error(`[CSCA] ${seed} failed:`, error.message); }
+    catch (error) { console.error(`[CSCA] ${seed} failed after retries:`, error.message); }
   }
 }
 
