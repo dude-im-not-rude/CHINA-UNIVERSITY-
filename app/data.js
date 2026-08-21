@@ -1,15 +1,13 @@
-export const universities=[
-{slug:"wuhan-university",name:"Wuhan University",short:"WHU",type:"Public",tier:"Double First-Class",city:"Wuhan",region:"Hubei",website:"https://www.whu.edu.cn/",programs:[{name:"International Business",degree:"Bachelor",language:"English",duration:"4 years",tuition:"To verify"},{name:"International Business",degree:"Master",language:"English",duration:"2 years",tuition:"To verify"}],scholarships:["CSC","University scholarships"],facilities:["Libraries","Dining facilities","Student accommodation","Sports facilities"],attractions:["East Lake","Yellow Crane Tower"],description:"Public research university in Wuhan. Current program eligibility, fees and English delivery must be verified from the official admission notice."},
-{slug:"harbin-institute-of-technology",name:"Harbin Institute of Technology",short:"HIT",type:"Public",tier:"C9 League",city:"Harbin",region:"Heilongjiang",website:"https://www.hit.edu.cn/",programs:[{name:"International Economics and Trade",degree:"Bachelor",language:"English",duration:"4 years",tuition:"To verify"}],scholarships:["CSC","University scholarships"],facilities:["Libraries","Laboratories","Dining facilities","Dormitories"],attractions:["Harbin Ice and Snow World","Central Street"],description:"C9 public research university. Program-level English delivery and international admissions requirements should be checked against the current notice."},
-{slug:"xiamen-university",name:"Xiamen University",short:"XMU",type:"Public",tier:"Double First-Class",city:"Xiamen",region:"Fujian",website:"https://www.xmu.edu.cn/",programs:[{name:"Business Administration",degree:"Bachelor",language:"English",duration:"4 years",tuition:"To verify"}],scholarships:["CSC","Fujian scholarships","University scholarships"],facilities:["Libraries","Dining halls","Dormitories","Sports facilities"],attractions:["Gulangyu Island","Xiamen coast"],description:"Comprehensive public university in coastal Xiamen. Verify the current international admissions catalogue before applying."},
-{slug:"ningbo-university",name:"Ningbo University",short:"NBU",type:"Public",tier:"Double First-Class",city:"Ningbo",region:"Zhejiang",website:"https://www.nbu.edu.cn/",programs:[{name:"Business Administration",degree:"Bachelor",language:"English",duration:"4 years",tuition:"To verify"}],scholarships:["CSC","University scholarships"],facilities:["Libraries","Dormitories","Canteens","Sports facilities"],attractions:["Tianyi Pavilion","Dongqian Lake"],description:"Public comprehensive university in Ningbo. This starter profile is ready for verified program and fee data."},
-{slug:"donghua-university",name:"Donghua University",short:"DHU",type:"Public",tier:"Double First-Class",city:"Shanghai",region:"Shanghai",website:"https://www.dhu.edu.cn/",programs:[{name:"International Economics and Trade",degree:"Bachelor",language:"English",duration:"4 years",tuition:"To verify"}],scholarships:["CSC","Shanghai Government Scholarship","University scholarships"],facilities:["Libraries","Canteens","Dormitories","Sports facilities"],attractions:["The Bund","Yu Garden"],description:"Public university in Shanghai with international programs. Check the current program catalogue for English-taught availability."}
-];
-export const scholarships=[
-{name:"Chinese Government Scholarship — Type A",level:"Bachelor + Master + PhD",route:"Embassy / dispatching authority",note:"Country-specific quotas, eligibility and deadlines vary by annual call."},
-{name:"Chinese Government Scholarship — Type B",level:"Bachelor + Master + PhD",route:"University route",note:"University-specific programs and requirements apply."},
-{name:"University Scholarships",level:"Bachelor + Master",route:"University",note:"Tuition reductions or awards vary by university."},
-{name:"Provincial / Municipal Scholarships",level:"Bachelor + Master",route:"Province / city / university",note:"Availability depends on the current local scholarship call."},
-{name:"International Chinese Language Teacher Scholarship",level:"Selected study levels",route:"Approved host institution route",note:"Eligibility and application channels are program-specific."}
-];
-export const csca={subjects:[["Mathematics","Check the target program and university requirement."],["Physics","May apply to selected science/engineering programs."],["Chemistry","May apply to selected science/medical-related programs."],["Chinese","Check the current CSCA and university requirements."],["Professional subjects","Check the target university/program announcement."]]};
+// Legacy compatibility module. University and scholarship records now come exclusively from Neon.
+// This file intentionally contains no demo university data.
+export const universities = [];
+export const scholarships = [];
+export const csca = {
+  subjects: [
+    ["Mathematics", "Check the target program and university requirement."],
+    ["Physics", "May apply to selected science/engineering programs."],
+    ["Chemistry", "May apply to selected science/medical-related programs."],
+    ["Chinese", "Check the current CSCA and university requirements."],
+    ["Professional subjects", "Check the target university/program announcement."]
+  ]
+};
