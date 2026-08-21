@@ -42,3 +42,5 @@ The Web3Forms access key is designed to be public, but keeping it in an environm
 The contact form uses Web3Forms' hCaptcha integration. Web3Forms documents a zero-config hCaptcha setup and provides the free-plan site key used by the React/Next.js example.
 
 After adding the variable, redeploy the Vercel project.
+
+<!-- Deployment sync checkpoint -->
