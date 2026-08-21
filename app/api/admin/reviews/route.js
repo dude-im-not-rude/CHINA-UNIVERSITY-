@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {sql} from "@neondatabase/serverless";
 import {cookies} from "next/headers";
-import {readSession} from "../../../../../lib/admin-auth";
+import {readSession} from "../../../../lib/admin-auth";
 
 const STATUSES=new Set(["needs_review","in_progress","verified","published"]);
 const PRIORITIES=new Set(["low","normal","high"]);
