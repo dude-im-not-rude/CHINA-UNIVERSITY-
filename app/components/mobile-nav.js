@@ -15,9 +15,8 @@ export default function MobileNav() {
         <Link href="/universities" onClick={close}><span>01</span>Universities</Link>
         <Link href="/scholarships" onClick={close}><span>02</span>Scholarships</Link>
         <Link href="/csca" onClick={close}><span>03</span>CSCA</Link>
-        <Link href="/translate" onClick={close}><span>04</span>Translate</Link>
-        <Link href="/sources" onClick={close}><span>05</span>Data sources</Link>
-        <Link href="/contact" onClick={close}><span>06</span>Contact</Link>
+        <Link href="/sources" onClick={close}><span>04</span>Data sources</Link>
+        <Link href="/contact" onClick={close}><span>05</span>Contact</Link>
       </nav>
       <div className="mobile-menu-note">ChinaUniTracker · 2027 intake</div>
     </aside></div>}
