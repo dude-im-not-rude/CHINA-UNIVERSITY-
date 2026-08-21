@@ -1,5 +1,6 @@
 import "./globals.css";
 import "./mobile.css";
+import "./mobile-fix.css";
 import "./theme.css";
 import GlobalUI from "./components/global-ui";
 
