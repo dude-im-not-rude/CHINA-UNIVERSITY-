@@ -1,6 +1,10 @@
 name: Official university diagnostic
 
 on:
+  push:
+    paths:
+      - 'scripts/official-university-monitor.mjs'
+      - '.github/workflows/official-university-diagnostic.yml'
   workflow_dispatch:
 
 jobs:
