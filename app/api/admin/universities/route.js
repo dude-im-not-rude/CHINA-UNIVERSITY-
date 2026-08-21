@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {sql} from "@neondatabase/serverless";
 import {cookies} from "next/headers";
-import {readSession} from "../../../../../lib/admin-auth";
+import {readSession} from "../../../../lib/admin-auth";
 function admin(){return readSession(cookies().get("cut_admin_session")?.value)}
 const U=new Set(["name_english","name_chinese","short_name","university_type","city","province","official_website","university_description","admissions_website","logo_url","cover_image_url","c9","project_985","project_211","double_first_class"]);
 const P=new Set(["program_name","degree_level","language","english_taught","field_of_study","duration_years","tuition_fee","tuition_currency","official_program_url","application_url","is_active"]);
