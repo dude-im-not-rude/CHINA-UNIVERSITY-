@@ -7,19 +7,28 @@ export async function getUniversities(filters = {}) {
   const add = (sql, value) => { values.push(value); where.push(sql.replace('$VALUE', `$${values.length}`)); };
 
   if (filters.q) add(`(u.name_english ILIKE '%' || $VALUE || '%' OR COALESCE(u.name_chinese,'') ILIKE '%' || $VALUE || '%' OR COALESCE(u.city,'') ILIKE '%' || $VALUE || '%' OR EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND (p.program_name ILIKE '%' || $VALUE || '%' OR COALESCE(p.field_of_study,'') ILIKE '%' || $VALUE || '%')))`, filters.q);
+  if (filters.university) add(`u.name_english ILIKE '%' || $VALUE || '%'`, filters.university);
   if (filters.degree) add(`EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND lower(p.degree_level)=lower($VALUE))`, filters.degree);
   if (filters.type) add(`lower(u.university_type)=lower($VALUE)`, filters.type);
-  if (filters.english === 'true') where.push(`EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND p.english_taught=true)`);
-  if (filters.major) add(`EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND (p.field_of_study ILIKE '%' || $VALUE || '%' OR p.program_name ILIKE '%' || $VALUE || '%'))`, filters.major);
   if (filters.province) add(`lower(COALESCE(u.province,''))=lower($VALUE)`, filters.province);
   if (filters.city) add(`lower(COALESCE(u.city,''))=lower($VALUE)`, filters.city);
+  if (filters.major) add(`EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND (p.field_of_study ILIKE '%' || $VALUE || '%' OR p.program_name ILIKE '%' || $VALUE || '%'))`, filters.major);
+  if (filters.program) add(`EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND p.program_name ILIKE '%' || $VALUE || '%')`, filters.program);
+  if (filters.language) add(`EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND lower(COALESCE(p.language, CASE WHEN p.english_taught THEN 'English' ELSE '' END))=lower($VALUE))`, filters.language);
+  if (filters.english === 'true') where.push(`EXISTS (SELECT 1 FROM programs p WHERE p.university_id=u.id AND p.english_taught=true)`);
   if (filters.scholarship === 'true') where.push(`EXISTS (SELECT 1 FROM university_scholarships us WHERE us.university_id=u.id AND COALESCE(us.available,true)=true)`);
+  if (filters.scholarshipType) add(`EXISTS (SELECT 1 FROM university_scholarships us JOIN scholarships s ON s.id=us.scholarship_id WHERE us.university_id=u.id AND COALESCE(us.available,true)=true AND lower(COALESCE(s.scholarship_type,''))=lower($VALUE))`, filters.scholarshipType);
+  if (filters.coverage === 'tuition') where.push(`EXISTS (SELECT 1 FROM university_scholarships us JOIN scholarships s ON s.id=us.scholarship_id WHERE us.university_id=u.id AND COALESCE(us.available,true)=true AND s.tuition_coverage=true)`);
+  if (filters.coverage === 'accommodation') where.push(`EXISTS (SELECT 1 FROM university_scholarships us JOIN scholarships s ON s.id=us.scholarship_id WHERE us.university_id=u.id AND COALESCE(us.available,true)=true AND s.accommodation_coverage=true)`);
+  if (filters.coverage === 'stipend') where.push(`EXISTS (SELECT 1 FROM university_scholarships us JOIN scholarships s ON s.id=us.scholarship_id WHERE us.university_id=u.id AND COALESCE(us.available,true)=true AND s.stipend_coverage=true)`);
   if (filters.csca === 'true') where.push(`EXISTS (SELECT 1 FROM programs p JOIN admission_requirements ar ON ar.program_id=p.id WHERE p.university_id=u.id AND ar.csca_required=true)`);
+  if (filters.csca === 'false') where.push(`EXISTS (SELECT 1 FROM programs p LEFT JOIN admission_requirements ar ON ar.program_id=p.id WHERE p.university_id=u.id AND COALESCE(ar.csca_required,false)=false)`);
   if (filters.classification === 'c9') where.push('u.c9=true');
   if (filters.classification === '985') where.push('u.project_985=true');
   if (filters.classification === '211') where.push('u.project_211=true');
   if (filters.classification === 'double-first-class') where.push('u.double_first_class=true');
   if (filters.intake) add(`EXISTS (SELECT 1 FROM programs p JOIN intakes i ON i.program_id=p.id WHERE p.university_id=u.id AND i.intake_name ILIKE '%' || $VALUE || '%')`, filters.intake);
+  if (filters.open === 'true') where.push(`EXISTS (SELECT 1 FROM programs p JOIN intakes i ON i.program_id=p.id WHERE p.university_id=u.id AND (i.application_status ILIKE '%open%' OR (i.application_open_date IS NOT NULL AND CURRENT_DATE >= i.application_open_date AND (i.application_deadline IS NULL OR CURRENT_DATE <= i.application_deadline))))`);
 
   const query = `
     SELECT u.id, u.name_english, u.name_chinese, u.short_name, u.university_type, u.city, u.province,
