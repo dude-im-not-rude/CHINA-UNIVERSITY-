@@ -1,19 +1,37 @@
 import {NextResponse} from "next/server";
 
 const enc=new TextEncoder();
-function b64(bytes){return Buffer.from(bytes).toString("base64url")}
-function unb64(s){return Buffer.from(s,"base64url").toString()}
-async function signature(payload,secret){
- const key=await crypto.subtle.importKey("raw",enc.encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
- return b64(await crypto.subtle.sign("HMAC",key,enc.encode(payload)));
+const dec=new TextDecoder();
+
+function base64UrlToBytes(value){
+ const base64=value.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-value.length%4)%4);
+ const binary=atob(base64);
+ const bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return bytes;
 }
+
+function bytesToBase64Url(bytes){
+ let binary="";
+ for(const byte of bytes)binary+=String.fromCharCode(byte);
+ return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+}
+
+function decodePayload(value){
+ return dec.decode(base64UrlToBytes(value));
+}
+
+async function signatureValid(payload,signature,secret){
+ const key=await crypto.subtle.importKey("raw",enc.encode(secret),{name:"HMAC",hash:"SHA-256"},false,["verify"]);
+ return crypto.subtle.verify("HMAC",key,base64UrlToBytes(signature),enc.encode(payload));
+}
+
 async function valid(token){
  try{
   const [payload,sig]=String(token||"").split(".");
   if(!payload||!sig||!process.env.ADMIN_SESSION_SECRET)return false;
-  const expected=await signature(unb64(payload),process.env.ADMIN_SESSION_SECRET);
-  if(sig!==expected)return false;
-  const data=JSON.parse(unb64(payload));
+  if(!await signatureValid(payload,sig,process.env.ADMIN_SESSION_SECRET))return false;
+  const data=JSON.parse(decodePayload(payload));
   return data?.role==="admin"&&Number(data.exp)>Date.now();
  }catch{return false}
 }
