@@ -2,6 +2,7 @@ import "./globals.css";
 import "./mobile.css";
 import "./mobile-fix.css";
 import "./translation.css";
+import "./controls.css";
 import "./theme.css";
 import GlobalUI from "./components/global-ui";
 
