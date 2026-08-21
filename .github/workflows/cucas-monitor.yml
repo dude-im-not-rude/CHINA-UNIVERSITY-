@@ -22,5 +22,14 @@ jobs:
           CUCAS_SEED_URLS: >-
             https://bachelor.cucas.cn/search?tag=2-137|
             https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0-0-0|
-            https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0
+            https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0|
+            https://www.cucas.cn/index/bachelorcourse?lang=en|
+            https://www.cucas.cn/index/mastercourse?lang=en|
+            https://www.cucas.cn/index/chinesecourse?lang=en|
+            https://school.cucas.cn/|
+            https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
+      - name: Normalize duplicate program records
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/dedupe-programs.mjs
