@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const HCAPTCHA_SITEKEY = "50b2fe65-b00b-4b9e-ad62-3ba471098be2";
@@ -10,6 +10,18 @@ export default function ContactWidget() {
   const [captchaToken, setCaptchaToken] = useState("");
   const [status, setStatus] = useState("");
   const [sending, setSending] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    function openFromReport(event) {
+      const { university, program } = event.detail || {};
+      setMessage(`Report for: ${university}${program ? ` — ${program}` : ""}\n\n`);
+      setStatus("");
+      setOpen(true);
+    }
+    window.addEventListener("open-contact-widget", openFromReport);
+    return () => window.removeEventListener("open-contact-widget", openFromReport);
+  }, []);
 
   async function submit(event) {
     event.preventDefault();
@@ -28,36 +40,28 @@ export default function ContactWidget() {
       const response = await fetch("https://api.web3forms.com/submit", { method: "POST", body: formData });
       const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.message || "The message could not be sent.");
-      form.reset();
-      setCaptchaToken("");
+      form.reset(); setCaptchaToken(""); setMessage("");
       setStatus("Message sent successfully. We'll get back to you soon.");
-    } catch (error) {
-      setStatus(error.message || "Something went wrong. Please try again.");
-    } finally { setSending(false); }
+    } catch (error) { setStatus(error.message || "Something went wrong. Please try again."); }
+    finally { setSending(false); }
   }
 
-  return (
-    <>
-      <button className="contact-fab" onClick={() => setOpen(true)} aria-label="Open contact form" title="Contact us">✉</button>
-      {open && (
-        <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
-          <div className="contact-modal" role="dialog" aria-modal="true" aria-label="Contact ChinaUniTracker">
-            <button className="modal-close" onClick={() => setOpen(false)} aria-label="Close">×</button>
-            <div className="eyebrow">CONTACT US</div>
-            <h2>Tell us what needs fixing.</h2>
-            <p>Questions, missing university data, corrections or feedback — send it over.</p>
-            <form onSubmit={submit} className="contact-widget-form">
-              <label>Name<input name="name" maxLength={100} required /></label>
-              <label>Email<input name="email" type="email" maxLength={254} required /></label>
-              <label>Message<textarea name="message" rows="5" maxLength={5000} required /></label>
-              <input type="checkbox" name="botcheck" tabIndex="-1" autoComplete="off" style={{ display: "none" }} />
-              <HCaptcha sitekey={HCAPTCHA_SITEKEY} reCaptchaCompat={false} onVerify={setCaptchaToken} onExpire={() => setCaptchaToken("")} onError={() => setCaptchaToken("")} />
-              <button className="btn primary full" type="submit" disabled={sending}>{sending ? "Sending..." : "Send message"}</button>
-              {status && <div className="notice" role="status">{status}</div>}
-            </form>
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return <>
+    <button className="contact-fab" onClick={() => { setStatus(""); setOpen(true); }} aria-label="Open contact form" title="Contact us">✉</button>
+    {open && <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
+      <div className="contact-modal" role="dialog" aria-modal="true" aria-label="Contact ChinaUniTracker">
+        <button className="modal-close" onClick={() => setOpen(false)} aria-label="Close">×</button>
+        <div className="eyebrow">CONTACT US</div><h2>Tell us what needs fixing.</h2><p>Questions, missing university data, corrections or feedback — send it over.</p>
+        <form onSubmit={submit} className="contact-widget-form">
+          <label>Name<input name="name" maxLength={100} required /></label>
+          <label>Email<input name="email" type="email" maxLength={254} required /></label>
+          <label>Message<textarea name="message" rows="5" maxLength={5000} required value={message} onChange={(e) => setMessage(e.target.value)} /></label>
+          <input type="checkbox" name="botcheck" tabIndex="-1" autoComplete="off" style={{ display: "none" }} />
+          <HCaptcha sitekey={HCAPTCHA_SITEKEY} reCaptchaCompat={false} onVerify={setCaptchaToken} onExpire={() => setCaptchaToken("")} onError={() => setCaptchaToken("")} />
+          <button className="btn primary full" type="submit" disabled={sending}>{sending ? "Sending..." : "Send message"}</button>
+          {status && <div className="notice" role="status">{status}</div>}
+        </form>
+      </div>
+    </div>}
+  </>;
 }
