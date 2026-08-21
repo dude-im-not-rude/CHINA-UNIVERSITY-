@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 export default function SiteControls(){
-  const [dark,setDark]=useState(false);
+  const [dark,setDark]=useState(true);
   useEffect(()=>{
     const saved=localStorage.getItem("chinauni-theme");
-    const isDark=saved==="dark";
+    const isDark=saved ? saved==="dark" : true;
     setDark(isDark);
     document.documentElement.classList.toggle("dark-mode",isDark);
+    if(!saved) localStorage.setItem("chinauni-theme","dark");
   },[]);
   const toggleTheme=()=>{
     const next=!dark;
@@ -19,6 +19,5 @@ export default function SiteControls(){
   };
   return <div className="site-controls" aria-label="Site controls">
     <button className="theme-toggle" onClick={toggleTheme} aria-label={dark?"Switch to light mode":"Switch to dark mode"} title={dark?"Light mode":"Dark mode"}>{dark?"☀":"☾"}</button>
-    <Link className="language-control" href="/translate" aria-label="Open translation page" title="Translation">EN · 文</Link>
   </div>;
 }
