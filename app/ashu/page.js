@@ -1,7 +1,8 @@
-import AdminLogin from "../admin/admin-login";
+import AdminDashboard from "../admin/admin-dashboard";
+import "../admin/admin.css";
 
-export const metadata={title:"Private Control Center | ChinaUniTracker"};
+export const dynamic="force-dynamic";
 
-export default function AshuAdminEntry(){
-  return <AdminLogin/>;
+export default function AshuAdmin(){
+  return <AdminDashboard />;
 }
