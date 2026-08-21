@@ -1,0 +1,21 @@
+name: CUCAS daily monitor
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - name: Monitor CUCAS
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MAX_PROGRAM_PAGES: 150
+        run: node scripts/cucas-monitor.mjs cucas
