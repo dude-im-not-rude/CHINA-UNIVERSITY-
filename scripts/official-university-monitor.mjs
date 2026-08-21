@@ -4,23 +4,33 @@ import { neon } from '@neondatabase/serverless';
 const db = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 if (!db) throw new Error('DATABASE_URL is required for official-university monitoring.');
 
-const USER_AGENT = 'ChinaUniTracker-OfficialMonitor/1.0 (+https://china-university-tracker-12.vercel.app)';
+const USER_AGENT = 'ChinaUniTracker-OfficialMonitor/1.1 (+https://china-university-tracker-12.vercel.app)';
 const TIMEOUT_MS = 30000;
 const RETRIES = 3;
 
-// Controlled diagnostic batch. These are official university domains only.
+// Full diagnostic batch requested by the user. Official university domains only.
 // We deliberately test fetching/discovery before importing program records.
 const UNIVERSITIES = [
   { name: 'Capital University of Economics and Business', url: 'https://english.cueb.edu.cn/' },
-  { name: 'Central University of Finance and Economics', url: 'https://en.cufe.edu.cn/Admissions1.htm' },
-  { name: 'Jilin University', url: 'https://cie.jlu.edu.cn/info/1079/3655.htm' },
+  { name: 'Central University of Finance and Economics', url: 'https://en.cufe.edu.cn/' },
+  { name: 'Jilin University', url: 'https://www.jlu.edu.cn/index/English.htm' },
   { name: 'Civil Aviation University of China', url: 'https://www.cauc.edu.cn/' },
-  { name: 'Dongbei University of Finance and Economics', url: 'https://english.dufe.edu.cn/admission/' },
-  { name: 'Fuzhou University of International Studies and Trade', url: 'https://www.fzfu.com/gjzx/info/1094/2837.htm' },
-  { name: 'Guangdong University of Foreign Studies', url: 'https://iie-en.gdufs.edu.cn/Enrollment1.htm' },
-  { name: 'Hainan University', url: 'https://en.hainanu.edu.cn/Admission/InternationalStudents/ProgramInformation/Degree_Programs.htm' },
+  { name: 'Dongbei University of Finance and Economics', url: 'https://english.dufe.edu.cn/' },
+  { name: 'Fuzhou University of International Studies and Trade', url: 'https://www.fzfu.com/' },
+  { name: 'Guangdong University of Foreign Studies', url: 'https://www.gdufs.edu.cn/' },
+  { name: 'Hainan University', url: 'https://en.hainanu.edu.cn/' },
   { name: 'Harbin University of Commerce', url: 'https://www.hrbcu.edu.cn/' },
-  { name: 'Hubei University', url: 'https://eng.hubu.edu.cn/index/Admission/Online_Application1.htm' },
+  { name: 'Hubei University', url: 'https://eng.hubu.edu.cn/' },
+  { name: 'Lanzhou University', url: 'https://en.lzu.edu.cn/' },
+  { name: 'Nanchang University', url: 'https://english.ncu.edu.cn/' },
+  { name: 'Lishui University', url: 'https://www.lsu.edu.cn/' },
+  { name: 'Ningbo University', url: 'https://www.nbu.edu.cn/' },
+  { name: 'Renmin University of China', url: 'https://en.ruc.edu.cn/' },
+  { name: 'SIAS University', url: 'https://www.sias.edu.cn/' },
+  { name: 'Shanghai University of Finance and Economics', url: 'https://english.sufe.edu.cn/' },
+  { name: 'Southwestern University of Finance and Economics', url: 'https://e.swufe.edu.cn/' },
+  { name: 'Taizhou University', url: 'https://www.tzu.edu.cn/' },
+  { name: 'Tongji University', url: 'https://en.tongji.edu.cn/' },
 ];
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
