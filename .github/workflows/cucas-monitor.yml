@@ -8,13 +8,19 @@ on:
 jobs:
   monitor:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          cache: npm
       - run: npm install --no-audit --no-fund
       - name: Monitor CUCAS
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CUCAS_SEED_URLS: >-
+            https://bachelor.cucas.cn/search?tag=2-137|
+            https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0-0-0|
+            https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0
         run: node scripts/cucas-monitor.mjs cucas
