@@ -16,31 +16,26 @@ export default function ContactWidget() {
     function openFromReport(event) {
       const { university, program } = event.detail || {};
       setMessage(`Report for: ${university}${program ? ` — ${program}` : ""}\n\n`);
-      setStatus("");
-      setOpen(true);
+      setStatus(""); setOpen(true);
     }
     window.addEventListener("open-contact-widget", openFromReport);
     return () => window.removeEventListener("open-contact-widget", openFromReport);
   }, []);
 
   async function submit(event) {
-    event.preventDefault();
-    setStatus("");
+    event.preventDefault(); setStatus("");
     if (!captchaToken) return setStatus("Please complete the CAPTCHA first.");
     const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
     if (!accessKey) return setStatus("Contact form is not configured yet.");
     setSending(true);
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    formData.set("access_key", accessKey);
-    formData.set("h-captcha-response", captchaToken);
-    formData.set("subject", "New ChinaUniTracker contact message");
-    formData.set("from_name", "ChinaUniTracker");
+    const formData = new FormData(event.currentTarget);
+    formData.set("access_key", accessKey); formData.set("h-captcha-response", captchaToken);
+    formData.set("subject", "New ChinaUniTracker contact message"); formData.set("from_name", "ChinaUniTracker");
     try {
       const response = await fetch("https://api.web3forms.com/submit", { method: "POST", body: formData });
       const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.message || "The message could not be sent.");
-      form.reset(); setCaptchaToken(""); setMessage("");
+      event.currentTarget.reset(); setCaptchaToken(""); setMessage("");
       setStatus("Message sent successfully. We'll get back to you soon.");
     } catch (error) { setStatus(error.message || "Something went wrong. Please try again."); }
     finally { setSending(false); }
@@ -51,7 +46,9 @@ export default function ContactWidget() {
     {open && <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
       <div className="contact-modal" role="dialog" aria-modal="true" aria-label="Contact ChinaUniTracker">
         <button className="modal-close" onClick={() => setOpen(false)} aria-label="Close">×</button>
-        <div className="eyebrow">CONTACT US</div><h2>Tell us what needs fixing.</h2><p>Questions, missing university data, corrections or feedback — send it over.</p>
+        <div className="eyebrow">REACH OUT</div>
+        <h2>Have a question? Let’s talk.</h2>
+        <p>Ask about a university, suggest a correction, share feedback, or tell us what information you’d like to see next.</p>
         <form onSubmit={submit} className="contact-widget-form">
           <label>Name<input name="name" maxLength={100} required /></label>
           <label>Email<input name="email" type="email" maxLength={254} required /></label>
