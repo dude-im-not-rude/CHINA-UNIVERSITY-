@@ -5,22 +5,26 @@ on:
     - cron: '30 2 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: chinauni-cucas-daily
+  cancel-in-progress: false
+
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
       - run: npm install --no-audit --no-fund
-      - name: Monitor CUCAS
+      - name: Discover and import CUCAS data
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CUCAS_SEED_URLS: >-
             https://bachelor.cucas.cn/search?tag=2-137|
-            https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0-0-0|
+            https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0-0|
             https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0|
             https://www.cucas.cn/index/bachelorcourse?lang=en|
             https://www.cucas.cn/index/mastercourse?lang=en|
@@ -28,15 +32,15 @@ jobs:
             https://school.cucas.cn/|
             https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Monitor official university websites
+      - name: Crawl every discovered official university
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-university-monitor.mjs
-      - name: Import official university programs
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-program-import-fixed.mjs
+        run: node scripts/official-program-import-all.mjs
       - name: Normalize duplicate program records
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/dedupe-programs.mjs
+      - name: Disable obvious non-program records
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/clean-invalid-programs.mjs
