@@ -1,4 +1,4 @@
-import { neon } from '@neondb/serverless';
+import { neon } from '@neondatabase/serverless';
 
 const db = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 if (!db) throw new Error('DATABASE_URL is required for program cleanup.');
