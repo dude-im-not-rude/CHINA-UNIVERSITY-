@@ -3,7 +3,7 @@ import { neon } from '@neondatabase/serverless';
 const db = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 if (!db) throw new Error('DATABASE_URL is required for official program import.');
 
-const USER_AGENT = 'ChinaUniTracker-OfficialProgramImporter/3.0';
+const USER_AGENT = 'ChinaUniTracker-OfficialProgramImporter/3.1';
 const TIMEOUT_MS = 25000;
 const RETRIES = 3;
 const MAX_PAGES_PER_UNIVERSITY = 120;
@@ -37,16 +37,17 @@ function deadline(text){const m=text.match(/(?:application deadline|deadline|app
 function year(text){return ACCEPTED_YEARS.find(y=>new RegExp(`\\b${y}\\b`).test(text))||null;}
 
 const BAD_NAME=/^(home|homepage|admissions?|application( process| procedures?| requirements?| documents?)?|admission( process| procedures?| requirements?)?|academic calendar|international students?|undergraduate( programs?)?|graduate( programs?)?|programs?|courses?|academics?|study|news|notice|school|college|faculty|application|scholarship(s)?( programs?)?|exchange( programs?)?|department(s)?|schools? (&|and) departments|fees?|tuition|accommodation|how to apply|contact( us)?|about( us)?|basic information|university information|semester arrangement.*)$/i;
-const BAD_TEXT=/(application\s+(?:requirements?|procedures?|process|documents)|admission\s+(?:requirements?|procedures?|process)|academic\s+calendar|semester\s+arrangement|scholarship\s+programs?|exchange\s+programs?)/i;
 const PROGRAM_PATH=/(^|[/_-])(programs?|programmes?|courses?|majors?|degrees?|bachelor|master|mba|undergraduate|graduate|phd|doctoral)([/_.?&#=-]|$)/i;
 const ADMIN_PATH=/(application|admission|requirement|procedure|document|calendar|scholarship|exchange|department|faculty|school|contact|about|fees|tuition|accommodation|how[-_ ]to[-_ ]apply)/i;
 
 function isRealProgramPage(url,anchor,name,text){
+  const path=new URL(url).pathname;
   const hay=`${url} ${anchor}`;
-  if(ADMIN_PATH.test(new URL(url).pathname)||BAD_NAME.test(name)||BAD_TEXT.test(name)||BAD_TEXT.test(text.slice(0,1800)))return false;
+  if(BAD_NAME.test(name.trim()))return false;
+  if(/^(academic|application|admission|scholarship|exchange|department|faculty|school|fees|tuition|calendar|requirements?|procedures?)/i.test(name.trim()))return false;
   if(!degree(text,url))return false;
   if(!PROGRAM_PATH.test(hay))return false;
-  if(/^(academic|application|admission|scholarship|exchange|department|faculty|school|fees|tuition|calendar|requirements?|procedures?)/i.test(name.trim()))return false;
+  if(ADMIN_PATH.test(path)&&!PROGRAM_PATH.test(path)&&!PROGRAM_PATH.test(anchor))return false;
   return true;
 }
 
@@ -65,7 +66,7 @@ console.log(`[OFFICIAL-ALL] ${universities.length} universities queued; no fixed
 let total=0;
 for(const u of universities){
  const queue=[[u.official_website,'']];const seen=new Set();const candidates=new Map();let pages=0;
- while(queue.length&&pages<MAX_PAGES_PER_UNIVERSITY){const [url,anchor]=queue.shift();if(seen.has(url))continue;seen.add(url);try{const p=await fetchText(url);pages++;const text=clean(p.html);const name=title(p.html,p.url);if(isRealProgramPage(p.url,anchor,name,text))candidates.set(p.url,{html:p.html,text,degree:degree(text,p.url),name});for(const [link,a] of links(p.html,p.url)){if(sameSite(link,u.official_website)&&!seen.has(link)&&!ADMIN_PATH.test(new URL(link).pathname))queue.push([link,a]);}await sleep(100);}catch(e){console.warn(`[OFFICIAL-ALL] ${u.name_english}: ${url} :: ${e.message}`);}}
+ while(queue.length&&pages<MAX_PAGES_PER_UNIVERSITY){const [url,anchor]=queue.shift();if(seen.has(url))continue;seen.add(url);try{const p=await fetchText(url);pages++;const text=clean(p.html);const name=title(p.html,p.url);if(isRealProgramPage(p.url,anchor,name,text))candidates.set(p.url,{text,degree:degree(text,p.url),name});for(const [link,a] of links(p.html,p.url)){const path=new URL(link).pathname;if(sameSite(link,u.official_website)&&!seen.has(link)&&(!ADMIN_PATH.test(path)||PROGRAM_PATH.test(path)||PROGRAM_PATH.test(a)))queue.push([link,a]);}await sleep(100);}catch(e){console.warn(`[OFFICIAL-ALL] ${u.name_english}: ${url} :: ${e.message}`);}}
  let imported=0;for(const [url,c] of candidates){const record={name:c.name,degree:c.degree,language:language(c.text),duration:duration(c.text),tuition:tuition(c.text),year:year(c.text),deadline:deadline(c.text),url};try{if(await upsert(u.id,u.name_english,record))imported++;}catch(e){console.warn(`[OFFICIAL-ALL] ${u.name_english}: import failed ${record.name} :: ${e.message}`);}}
  total+=imported;console.log(`[OFFICIAL-ALL] ${u.name_english}: ${pages} pages, ${candidates.size} verified candidates, ${imported} imported/updated`);
 }
