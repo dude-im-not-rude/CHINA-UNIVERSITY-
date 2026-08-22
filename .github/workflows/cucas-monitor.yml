@@ -48,11 +48,11 @@ jobs:
           OFFICIAL_MAX_PAGES: '120'
           OFFICIAL_MAX_DOCS: '40'
         run: node scripts/official-program-import-v7.mjs
-      - name: Enrich official contacts, locations, assets and facilities
+      - name: Enrich official contacts, locations, assets, facilities and faculty
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           ENRICH_MAX_PAGES: '60'
-        run: node scripts/official-university-enrichment-v3.mjs
+        run: node scripts/official-university-enrichment-v4.mjs
       - name: Collect useful university intelligence
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
