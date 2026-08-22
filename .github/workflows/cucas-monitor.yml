@@ -33,11 +33,11 @@ jobs:
             https://school.cucas.cn/|
             https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Crawl official programs with safe classification
+      - name: Crawl discovered official university programs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/official-program-import-v4.mjs
-      - name: Monitor useful university intelligence
+      - name: Collect useful university intelligence
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/official-university-intelligence.mjs
