@@ -1,0 +1,4 @@
+'use client';
+import {useEffect,useState} from 'react';
+const tips=['A strong shortlist beats a huge shortlist.','Check the official deadline before you apply.','Keep scholarship documents organised in one folder.','English-taught does not always mean every course is in English.','Save the official program page before submitting an application.','Compare tuition, accommodation and scholarship coverage together.'];
+export default function SmartLoading({show=false}){const [tip,setTip]=useState(tips[0]);useEffect(()=>{if(!show)return;setTip(tips[Math.floor(Math.random()*tips.length)]);},[show]);if(!show)return null;return <div className="smart-loading" role="status" aria-live="polite"><div className="smart-loader"><span></span><span></span><span></span></div><p>Getting your China study data ready…</p><small>{tip}</small></div>}
