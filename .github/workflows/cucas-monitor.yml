@@ -22,6 +22,12 @@ jobs:
       - name: Install PDF extraction tool
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
       - run: npm install --no-audit --no-fund
+      - name: Discover full CUCAS university catalog
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CUCAS_MAX_PAGES_PER_SEED: '40'
+          CUCAS_MAX_DISCOVERY_PAGES: '500'
+        run: node scripts/discover-all-cucas-universities.mjs
       - name: Discover and import CUCAS data
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -39,6 +45,10 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/official-program-import-v4.mjs
+      - name: Persist official PDFs and enrich requirements
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/persist-official-documents.mjs
       - name: Enrich official contacts and campuses
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
