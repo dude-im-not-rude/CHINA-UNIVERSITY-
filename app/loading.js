@@ -1,0 +1,4 @@
+'use client';
+import { useEffect, useState } from 'react';
+const tips=['A strong application starts with the right shortlist.','Check the official deadline before you apply.','Scholarship rules can differ by university and intake.','Keep your academic documents ready before applications open.','Compare tuition, language and requirements together.','Your university shortlist should match your actual goals.','Always save the official application link.','Small deadline changes can matter. Check updates regularly.'];
+export default function Loading(){const [tip,setTip]=useState(tips[0]);useEffect(()=>setTip(tips[Math.floor(Math.random()*tips.length)]),[]);return <main className="loading-screen" aria-live="polite"><div className="loading-mark">CU</div><div className="loading-line"><span/></div><p>Preparing your China study information…</p><small>{tip}</small></main>}
