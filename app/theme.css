@@ -1,1 +1,73 @@
-body{background:#f4f7f3;color:#142017}.nav{background:rgba(255,255,255,.9);backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(30,55,32,.06)}.brand span,.eyebrow,.tag,.panel a,.footer-columns a:hover{color:#5f8c62}.hero{position:relative}.hero::before{content:"";position:absolute;width:420px;height:420px;right:5%;top:5%;background:radial-gradient(circle,rgba(104,146,105,.16),transparent 68%);pointer-events:none}.hero-card{background:linear-gradient(145deg,#193a2a,#284c34);box-shadow:0 28px 70px rgba(25,58,42,.18)}.hero-card .mini-grid div{background:rgba(255,255,255,.08)}.primary{background:#1c3c2b;border-color:#1c3c2b}.btn.primary:hover{background:#264d36}.feature,.uni-card,.scholar-card,.panel,.advanced-filters{box-shadow:0 10px 35px rgba(31,52,34,.045)}.feature:hover,.uni-card:hover,.scholar-card:hover{box-shadow:0 20px 45px rgba(31,52,34,.09);border-color:#c4d5c3}.uni-logo{background:linear-gradient(145deg,#e5efe1,#d3e4d0);color:#416444}.chips span{background:#e8f1e6;color:#4e7652}.verified-badge{background:#e7f2e5;color:#47724c}.muted{background:linear-gradient(180deg,#edf3eb,#e9f0e7)}.section-head h2,.section h2,.page-head h1,.contact h1,.legal-page h1{color:#132018}.warning{background:#fffaf0;border-color:#eadfbd}.site-footer{background:linear-gradient(145deg,#13251a,#1b3222)}.contact-fab{background:linear-gradient(145deg,#1b3b29,#2c5a3a)}.cookie-banner{border-color:#d5e1d2}.advanced-filters{background:rgba(255,255,255,.96)}.filter-grid input,.filter-grid select{background:#f9fbf8}.result-toolbar{padding:0 2px}.menu-fab{border-color:#d5e0d2}.mobile-menu{background:linear-gradient(180deg,#fbfdf9,#f4f8f2)}
+/* ChinaUniTracker visual system: dark by default, light mode optional. */
+body{transition:background-color .25s ease,color .25s ease}
+main{animation:pageEnter .28s ease both}
+@keyframes pageEnter{from{opacity:.01;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Compact directory cards */
+.uni-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.uni-card{padding:16px;border-radius:15px;gap:12px;min-height:0}
+.uni-card h3{font-size:16px;line-height:1.22;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px}
+.uni-card p{font-size:12px;line-height:1.35;margin:0}
+.uni-card .tag{font-size:9px;margin-bottom:5px}
+.uni-card .uni-logo{width:46px;height:46px;min-width:46px;border-radius:12px;font-size:10px}
+.chips.small{gap:5px;margin-top:7px}.chips.small span{padding:4px 7px;font-size:9px}
+.result-toolbar{margin:18px 0 12px}
+
+/* Active navigation + smoother interaction */
+.nav nav a{position:relative;padding:8px 0;transition:color .18s ease}
+.nav nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:99px;background:#5f8c62;transform:scaleX(0);transform-origin:center;transition:transform .2s ease}
+.nav nav a:hover::after,.nav nav a.active::after{transform:scaleX(1)}
+.nav nav a:hover,.nav nav a.active{color:#5f8c62}
+
+/* DARK DEFAULT */
+html.dark-mode body{background:#0b110d;color:#e8efe8}
+html.dark-mode .nav{background:rgba(11,17,13,.88);border-color:#263229;box-shadow:0 1px 0 rgba(255,255,255,.04)}
+html.dark-mode .brand{color:#edf4ed}
+html.dark-mode .brand span,html.dark-mode .eyebrow,html.dark-mode .tag{color:#8fba86}
+html.dark-mode .nav nav a{color:#bfcabf}
+html.dark-mode .nav nav a:hover,html.dark-mode .nav nav a.active{color:#a7d09e}
+html.dark-mode .hero h1,html.dark-mode .page-head h1,html.dark-mode .section h2,html.dark-mode .section-head h2,html.dark-mode .contact h1,html.dark-mode .legal-page h1{color:#f1f6f1}
+html.dark-mode .hero p,html.dark-mode .page-head p{color:#aab6aa}
+html.dark-mode .stats div{border-color:#263229}html.dark-mode .stats span{color:#89958b}
+html.dark-mode .section.muted{background:#101811}
+html.dark-mode .feature,html.dark-mode .uni-card,html.dark-mode .scholar-card,html.dark-mode .panel,html.dark-mode .advanced-filters{background:#111a13;border-color:#29372c;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+html.dark-mode .feature:hover,html.dark-mode .uni-card:hover,html.dark-mode .scholar-card:hover{border-color:#405542;box-shadow:0 18px 38px rgba(0,0,0,.3)}
+html.dark-mode .feature p,html.dark-mode .uni-card p,html.dark-mode .scholar-card p,html.dark-mode .panel p{color:#9eaa9f}
+html.dark-mode .feature span{color:#7f8d80}
+html.dark-mode .uni-logo{background:#1d2b20;color:#a7cf9d}
+html.dark-mode .chips span{background:#1b2a1d;color:#a8c9a0}
+html.dark-mode .btn{border-color:#334238;color:#e7eee7}html.dark-mode .btn.secondary{background:#151f17}
+html.dark-mode .btn.primary{background:#2b5030;border-color:#2b5030;color:#fff}html.dark-mode .btn.primary:hover{background:#35613a}
+html.dark-mode .filter-heading p,html.dark-mode .result-toolbar>span{color:#849087}
+html.dark-mode .filter-grid label{color:#b5c0b6}
+html.dark-mode .filter-grid input,html.dark-mode .filter-grid select{background:#0d150f;border-color:#2b392e;color:#e6eee7}
+html.dark-mode .filter-grid input::placeholder{color:#667369}
+html.dark-mode .filter-grid input:focus,html.dark-mode .filter-grid select:focus{border-color:#658d5d;box-shadow:0 0 0 4px rgba(101,141,93,.14)}
+html.dark-mode .toggle-check{background:#121c14;border-color:#2b392e;color:#b8c4b9}html.dark-mode .filter-options{border-color:#29372c}
+html.dark-mode .result-meta{color:#8f9b91}html.dark-mode .result-meta b{color:#edf4ed}
+html.dark-mode .warning{background:#2a2618;border-color:#5a4e2d}html.dark-mode .notice{background:#18261a;border-color:#304832}
+html.dark-mode .table-wrap tr{background:#111a13;border-color:#29372c}html.dark-mode th,html.dark-mode td{border-color:#29372c}
+html.dark-mode .timeline div{border-color:#29372c}html.dark-mode .timeline span{color:#89958b}
+html.dark-mode .panel small{color:#7f8d80}html.dark-mode .panel a{color:#9dc695}
+html.dark-mode .verified-badge{background:#1b2b1d;color:#a8ce9f}
+html.dark-mode .site-footer{background:linear-gradient(145deg,#09100b,#142218)}
+html.dark-mode .site-footer p,html.dark-mode .site-footer small,html.dark-mode .footer-columns span{color:#849287}html.dark-mode .site-footer a{color:#b9c7bb}
+html.dark-mode .cookie-banner{background:#121a14;border-color:#2d3b30;color:#e5ece6}html.dark-mode .cookie-banner p{color:#9ca99e}
+html.dark-mode .cookie-details{color:#89958b}html.dark-mode .cookie-link{color:#9dc695}
+html.dark-mode .contact-modal{background:#111a13;color:#e8efe8}html.dark-mode .contact-modal>p{color:#9eaa9f}
+html.dark-mode .contact-modal input,html.dark-mode .contact-modal textarea{background:#0d150f;border-color:#2b392e;color:#e6eee7}
+html.dark-mode .modal-close{background:#1d2a20;color:#e7eee7}html.dark-mode .contact-fab{background:linear-gradient(145deg,#24472a,#35613a)}
+html.dark-mode .mobile-menu-backdrop{background:rgba(0,0,0,.58)}
+html.dark-mode .mobile-menu{background:linear-gradient(180deg,#111a13,#0c140e);border-color:#2b392e;color:#e8efe8}
+html.dark-mode .mobile-menu-close{background:#1d2a20;color:#e7eee7}
+html.dark-mode .mobile-menu nav a{border-color:#29372c;color:#e7eee7}
+html.dark-mode .mobile-menu nav a:hover,html.dark-mode .mobile-menu nav a.active{color:#a8d19f;background:#162219;border-radius:12px;padding-left:16px}
+html.dark-mode .mobile-menu nav a span{color:#728074}html.dark-mode .mobile-menu-note{color:#7f8d80}
+html.dark-mode .menu-fab{background:rgba(17,26,19,.92);border-color:#314036;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+html.dark-mode .menu-fab span{background:#dfe8e0}html.dark-mode .menu-fab.is-open{background:#315b36}
+html.dark-mode .advanced-filters .filter-reset{color:#e7eee7}html.dark-mode .empty{background:#111a13}
+html:not(.dark-mode) body{background:#f4f7f3;color:#142017}
+
+@media(max-width:900px){.uni-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+@media(max-width:520px){.uni-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.uni-card{padding:12px;border-radius:13px;display:block}.uni-card .uni-logo{width:38px;height:38px;min-width:38px;margin-bottom:9px}.uni-card h3{font-size:13px;line-height:1.18}.uni-card p{font-size:10px}.uni-card .tag{font-size:8px}.chips.small{display:flex}.chips.small span{font-size:8px;padding:3px 5px}}
+@media(prefers-reduced-motion:reduce){main{animation:none}}
