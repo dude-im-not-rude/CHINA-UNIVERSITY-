@@ -1,8 +1,9 @@
 name: CUCAS daily monitor
 
 on:
+  # 20:00 IST = 14:30 UTC
   schedule:
-    - cron: '30 2 * * *'
+    - cron: '30 14 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -24,7 +25,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CUCAS_SEED_URLS: >-
             https://bachelor.cucas.cn/search?tag=2-137|
-            https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0-0|
+            https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0|
             https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0|
             https://www.cucas.cn/index/bachelorcourse?lang=en|
             https://www.cucas.cn/index/mastercourse?lang=en|
