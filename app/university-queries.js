@@ -1,6 +1,12 @@
 import { getDb } from './db';
 
-const ACTIVE_PROGRAM = "COALESCE(p.is_active, true) = true";
+// Only surface records that look like actual academic programs. Imported university pages
+// often contain navigation/notice titles that are not degree programs.
+const ACTIVE_PROGRAM = `COALESCE(p.is_active, true) = true
+  AND NULLIF(trim(COALESCE(p.program_name, '')), '') IS NOT NULL
+  AND lower(trim(p.program_name)) !~ '^(programs?|courses?|academics?|study|home|homepage|news|notices?)$'
+  AND lower(trim(p.program_name)) !~ '^(degree programs?|admission|admissions|application|application procedure|application procedures|admission procedure|admission procedures|application requirements|admission requirements|scholarship|scholarships|scholarship program|scholarship programs|exchange program|exchange programs|departments?|facult(y|ies)|schools? (&|and) departments?|international students|contact us|about us|basic information|university information|fees (&|and) payment|tuition (&|and) fees|accommodation)$'
+  AND lower(p.program_name) !~ '(government scholarship|fine qualities of excellent students|application process|admission process|how to apply|contact us|about us|university information)'`;
 
 export async function getUniversities(filters = {}) {
   const db = getDb();
