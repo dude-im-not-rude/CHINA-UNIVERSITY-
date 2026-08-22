@@ -32,7 +32,7 @@ async function valid(token){
 
 export async function middleware(request){
  const path=request.nextUrl.pathname;
- const protectedPage=path.startsWith("/admin/dashboard")||path.startsWith("/admin/reviews")||path.startsWith("/ashu/dashboard");
+ const protectedPage=path.startsWith("/admin/dashboard")||path.startsWith("/admin/reviews")||path.startsWith("/admin/universities")||path.startsWith("/ashu/dashboard");
  const protectedApi=path.startsWith("/api/admin/dashboard")||path.startsWith("/api/admin/reviews")||path.startsWith("/api/admin/universities");
  if(protectedPage||protectedApi){
    if(!await valid(request.cookies.get("cut_admin_session")?.value)){
@@ -43,4 +43,4 @@ export async function middleware(request){
  return NextResponse.next();
 }
 
-export const config={matcher:["/admin/dashboard/:path*","/admin/reviews/:path*","/ashu/dashboard/:path*","/api/admin/dashboard/:path*","/api/admin/reviews/:path*","/api/admin/universities/:path*"]};
+export const config={matcher:["/admin/dashboard/:path*","/admin/reviews/:path*","/admin/universities/:path*","/ashu/dashboard/:path*","/api/admin/dashboard/:path*","/api/admin/reviews/:path*","/api/admin/universities/:path*"]};
