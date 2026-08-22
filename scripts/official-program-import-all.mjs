@@ -3,7 +3,7 @@ import { neon } from '@neondatabase/serverless';
 const db = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 if (!db) throw new Error('DATABASE_URL is required for official program import.');
 
-const USER_AGENT = 'ChinaUniTracker-OfficialProgramImporter/3.1';
+const USER_AGENT = 'ChinaUniTracker-OfficialProgramImporter/3.2';
 const TIMEOUT_MS = 25000;
 const RETRIES = 3;
 const MAX_PAGES_PER_UNIVERSITY = 120;
@@ -53,12 +53,35 @@ function isRealProgramPage(url,anchor,name,text){
 
 async function upsert(universityId,universityName,record){
   if(!record.name||record.name.length<3||BAD_NAME.test(record.name)||!record.degree)return false;
-  const rows=await db`SELECT id FROM programs WHERE university_id=${universityId} AND lower(program_name)=lower(${record.name}) AND lower(degree_level)=lower(${record.degree}) AND lower(language)=lower(${record.language}) LIMIT 1`;
+  const rows=await db`SELECT id, program_name, degree_level, language, english_taught, duration_years, tuition_fee, tuition_currency, official_program_url FROM programs WHERE university_id=${universityId} AND lower(program_name)=lower(${record.name}) AND lower(degree_level)=lower(${record.degree}) LIMIT 1`;
   let id=rows[0]?.id;
-  if(id)await db`UPDATE programs SET english_taught=${record.language==='English'},duration_years=${record.duration},tuition_fee=${record.tuition},tuition_currency='RMB',official_program_url=${record.url},is_active=true,updated_at=now() WHERE id=${id}`;
-  else{const r=await db`INSERT INTO programs (university_id,program_name,degree_level,language,english_taught,duration_years,tuition_fee,tuition_currency,official_program_url,is_active) VALUES (${universityId},${record.name},${record.degree},${record.language},${record.language==='English'},${record.duration},${record.tuition},'RMB',${record.url},true) RETURNING id`;id=r[0].id;}
-  if(record.year){const start=`${record.year}-09-01`;const status=record.deadline&&new Date(record.deadline)<new Date()?'closed':'upcoming';const existing=await db`SELECT id FROM intakes WHERE program_id=${id} AND semester_start_date=${start} LIMIT 1`;if(existing[0])await db`UPDATE intakes SET application_deadline=${record.deadline},application_status=${status},updated_at=now() WHERE id=${existing[0].id}`;else await db`INSERT INTO intakes (program_id,intake_name,application_deadline,semester_start_date,application_status,notes) VALUES (${id},'September',${record.deadline},${start},${status},'Discovered from the official university website; verify against the current admission notice.')`;}
-  const source=await db`SELECT id FROM sources WHERE program_id=${id} AND source_url=${record.url} LIMIT 1`;if(source[0])await db`UPDATE sources SET last_checked_at=now(),verification_status='verified',notes='Program discovered on the official university website.' WHERE id=${source[0].id}`;else await db`INSERT INTO sources (program_id,source_name,source_url,source_type,is_official,last_checked_at,verification_status,notes) VALUES (${id},${universityName},${record.url},'official',true,now(),'verified','Program discovered on the official university website.')`;return true;
+  if(id){
+    // GSC is the project's trusted reference seed. Official crawling enriches missing fields
+    // but does not silently overwrite trusted GSC values when the two sources conflict.
+    await db`UPDATE programs SET
+      english_taught=COALESCE(english_taught,${record.language==='English'}),
+      duration_years=COALESCE(duration_years,${record.duration}),
+      tuition_fee=COALESCE(tuition_fee,${record.tuition}),
+      tuition_currency=COALESCE(tuition_currency,${record.tuition!=null?'RMB':null}),
+      official_program_url=COALESCE(official_program_url,${record.url}),
+      is_active=true,
+      updated_at=now()
+      WHERE id=${id}`;
+  } else {
+    const r=await db`INSERT INTO programs (university_id,program_name,degree_level,language,english_taught,duration_years,tuition_fee,tuition_currency,official_program_url,is_active) VALUES (${universityId},${record.name},${record.degree},${record.language},${record.language==='English'},${record.duration},${record.tuition},${record.tuition!=null?'RMB':null},${record.url},true) RETURNING id`;
+    id=r[0].id;
+  }
+  if(record.year){
+    const start=`${record.year}-09-01`;
+    const status=record.deadline&&new Date(record.deadline)<new Date()?'closed':'upcoming';
+    const existing=await db`SELECT id FROM intakes WHERE program_id=${id} AND semester_start_date=${start} LIMIT 1`;
+    if(existing[0])await db`UPDATE intakes SET application_deadline=COALESCE(application_deadline,${record.deadline}),application_status=${status},updated_at=now() WHERE id=${existing[0].id}`;
+    else await db`INSERT INTO intakes (program_id,intake_name,application_deadline,semester_start_date,application_status,notes) VALUES (${id},'September',${record.deadline},${start},${status},'Discovered from the official university website; verify against the current admission notice.')`;
+  }
+  const source=await db`SELECT id FROM sources WHERE program_id=${id} AND source_url=${record.url} LIMIT 1`;
+  if(source[0])await db`UPDATE sources SET last_checked_at=now(),verification_status='verified',notes='Program discovered on the official university website.' WHERE id=${source[0].id}`;
+  else await db`INSERT INTO sources (program_id,source_name,source_url,source_type,is_official,last_checked_at,verification_status,notes) VALUES (${id},${universityName},${record.url},'official',true,now(),'verified','Program discovered on the official university website; used to enrich missing fields without overriding trusted reference values.')`;
+  return true;
 }
 
 const universities=await db`SELECT id,name_english,official_website FROM universities WHERE country='China' AND status='active' AND official_website IS NOT NULL AND trim(official_website)<>'' ORDER BY id`;
