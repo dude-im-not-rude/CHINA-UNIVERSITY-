@@ -19,7 +19,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Install PDF extraction tool
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
       - run: npm install --no-audit --no-fund
+      - name: Discover full CUCAS university catalog
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CUCAS_MAX_PAGES_PER_SEED: '80'
+          CUCAS_MAX_DISCOVERY_PAGES: '1000'
+        run: node scripts/discover-all-cucas-universities-v2.mjs
       - name: Discover and import CUCAS data
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -30,13 +38,26 @@ jobs:
             https://www.cucas.cn/index/bachelorcourse?lang=en|
             https://www.cucas.cn/index/mastercourse?lang=en|
             https://www.cucas.cn/index/chinesecourse?lang=en|
+            https://www.cucas.cn/index/nondegreecourse?lang=en|
             https://school.cucas.cn/|
             https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Crawl every discovered official university
+      - name: Crawl official university programs, non-degree offerings and documents
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-program-import-all.mjs
+          OFFICIAL_MAX_PAGES: '120'
+          OFFICIAL_MAX_DOCS: '40'
+        run: node scripts/official-program-import-v7.mjs
+      - name: Enrich official contacts, locations, assets, facilities and faculty
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ENRICH_MAX_PAGES: '60'
+        run: node scripts/official-university-enrichment-v4.mjs
+      - name: Collect useful university intelligence
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          INTEL_MAX_PAGES: '100'
+        run: node scripts/official-university-intelligence-v3.mjs
       - name: Normalize duplicate program records
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
