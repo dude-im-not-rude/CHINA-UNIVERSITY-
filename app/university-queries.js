@@ -1,5 +1,44 @@
 import { getDb } from './db';
 
+// Imported university sites sometimes expose navigation/section pages as if they
+// were academic programs. Keep those records out of the public program list.
+const NON_PROGRAM_EXACT = new Set([
+  'international', 'schools & departments', 'schools and departments',
+  'application procedures', 'application procedure', 'application requirements',
+  'admission requirements', 'admission procedure', 'admission procedures',
+  'application process', 'admission process', 'scholarship programs',
+  'scholarship program', 'exchange programs', 'exchange program',
+  'fees & payment', 'fees and payment', 'tuition & fees', 'tuition and fees',
+  'accommodation', 'how to apply', 'admissions', 'admission', 'scholarships',
+  'scholarship', 'departments', 'department', 'faculties', 'faculty',
+  'international students', 'contact us', 'about us', 'basic information',
+  'university information', 'overview', 'home', 'homepage', 'research',
+  'schools', 'colleges', 'academics', 'programs', 'courses', 'news', 'notices'
+]);
+
+function isAcademicProgram(program) {
+  const name = String(program?.program_name || '').replace(/\s+/g, ' ').trim();
+  const normalized = name.toLowerCase();
+  if (!name || NON_PROGRAM_EXACT.has(normalized)) return false;
+
+  // These are common crawl artefacts such as "Overview-Hainan University"
+  // or "More Projects-Hainan University" rather than degree programs.
+  if (/-(?:hainan|dongbei|hubei|university)\b/i.test(name) &&
+      /^(home|overview|research|more projects|degree programs|fine qualities|government scholarship|schools?|colleges?|faculties?|departments?|international|admission|application|scholarship|contact)\b/i.test(name)) {
+    return false;
+  }
+  if (/^(home|homepage|overview|research|more projects|degree programs|fine qualities|government scholarship|application|admission|scholarship|exchange|department|faculty|school|college|fees|tuition|accommodation|contact)\b/i.test(name)) return false;
+  if (/\b(?:university|college)\s*[-–—]\s*(?:home|overview|research|more projects|degree programs|scholarship|admission|application)\b/i.test(name)) return false;
+
+  // A real academic record should have at least one academic signal. This
+  // prevents scraped navigation pages with a guessed degree from leaking out.
+  const academicSignal = program.degree_level &&
+    !['other', 'unknown', '—'].includes(String(program.degree_level).toLowerCase());
+  const dataSignal = program.field_of_study || program.duration_years ||
+    program.tuition_fee || program.official_program_url || program.english_taught;
+  return Boolean(academicSignal && (dataSignal || program.language));
+}
+
 export async function getUniversities(filters = {}) {
   const db = getDb();
   const where = ["u.country = 'China'", "COALESCE(u.status, 'active') <> 'inactive'"];
@@ -43,9 +82,10 @@ export async function getUniversityById(id) {
   const rows = await db.query(`SELECT * FROM universities WHERE id=$1 LIMIT 1`, [id]);
   if (!rows[0]) return null;
   const u = rows[0];
-  const programs = await db.query(`SELECT p.*, ar.csca_required, ar.csca_subjects, ar.english_requirement, ar.ielts_min, ar.toefl_min, ar.hsk_requirement, ar.minimum_percentage, ar.mathematics_required,
+  const rawPrograms = await db.query(`SELECT p.*, ar.csca_required, ar.csca_subjects, ar.english_requirement, ar.ielts_min, ar.toefl_min, ar.hsk_requirement, ar.minimum_percentage, ar.mathematics_required,
     COALESCE(json_agg(DISTINCT jsonb_build_object('id',i.id,'name',i.intake_name,'open',i.application_open_date,'deadline',i.application_deadline,'status',i.application_status)) FILTER (WHERE i.id IS NOT NULL),'[]') AS intakes
     FROM programs p LEFT JOIN admission_requirements ar ON ar.program_id=p.id LEFT JOIN intakes i ON i.program_id=p.id WHERE p.university_id=$1 AND COALESCE(p.is_active,true)=true GROUP BY p.id, ar.id ORDER BY p.degree_level, p.program_name`, [id]);
+  const programs = rawPrograms.filter(isAcademicProgram);
   const scholarships = await db.query(`SELECT s.id, s.name, s.scholarship_type, s.provider, s.description, s.tuition_coverage, s.accommodation_coverage, s.stipend_coverage, s.insurance_coverage, s.application_deadline, s.application_url, s.official_website, us.notes FROM university_scholarships us JOIN scholarships s ON s.id=us.scholarship_id WHERE us.university_id=$1 AND COALESCE(us.available,true)=true ORDER BY s.name`, [id]);
   const campuses = await db.query(`SELECT * FROM campuses WHERE university_id=$1 ORDER BY name`, [id]);
   const contacts = await db.query(`SELECT * FROM university_contacts WHERE university_id=$1 ORDER BY department`, [id]);
@@ -60,6 +100,7 @@ export async function getProgramById(id) {
     COALESCE((SELECT json_agg(jsonb_build_object('id',i.id,'name',i.intake_name,'open',i.application_open_date,'deadline',i.application_deadline,'status',i.application_status) ORDER BY i.application_deadline NULLS LAST) FROM intakes i WHERE i.program_id=p.id),'[]') AS intakes
     FROM programs p JOIN universities u ON u.id=p.university_id LEFT JOIN admission_requirements ar ON ar.program_id=p.id WHERE p.id=$1 AND COALESCE(p.is_active,true)=true LIMIT 1`, [id]);
   if (!rows[0]) return null;
+  if (!isAcademicProgram(rows[0])) return null;
   const program = rows[0];
   const scholarships = await db.query(`SELECT s.id, s.name, s.scholarship_type, s.provider, s.description, s.tuition_coverage, s.accommodation_coverage, s.stipend_coverage, s.insurance_coverage, s.application_deadline, s.application_url, s.official_website, us.notes FROM university_scholarships us JOIN scholarships s ON s.id=us.scholarship_id WHERE us.university_id=$1 AND COALESCE(us.available,true)=true ORDER BY s.name`, [program.university_id]);
   const contacts = await db.query(`SELECT * FROM university_contacts WHERE university_id=$1 ORDER BY department`, [program.university_id]);
