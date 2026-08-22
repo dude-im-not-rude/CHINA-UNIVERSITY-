@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Install PDF extraction tool
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
       - run: npm install --no-audit --no-fund
       - name: Discover and import CUCAS data
         env:
@@ -33,7 +35,7 @@ jobs:
             https://school.cucas.cn/|
             https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Crawl official university programs
+      - name: Crawl official university programs and documents
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/official-program-import-v4.mjs
