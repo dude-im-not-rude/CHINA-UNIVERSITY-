@@ -11,12 +11,6 @@ function base64UrlToBytes(value){
  return bytes;
 }
 
-function bytesToBase64Url(bytes){
- let binary="";
- for(const byte of bytes)binary+=String.fromCharCode(byte);
- return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
-}
-
 function decodePayload(value){
  return dec.decode(base64UrlToBytes(value));
 }
@@ -38,13 +32,15 @@ async function valid(token){
 
 export async function middleware(request){
  const path=request.nextUrl.pathname;
- if(path.startsWith("/admin/dashboard")||path.startsWith("/admin/reviews")||path.startsWith("/api/admin/dashboard")||path.startsWith("/api/admin/reviews")){
+ const protectedPage=path.startsWith("/admin/dashboard")||path.startsWith("/admin/reviews")||path.startsWith("/ashu/dashboard");
+ const protectedApi=path.startsWith("/api/admin/dashboard")||path.startsWith("/api/admin/reviews")||path.startsWith("/api/admin/universities");
+ if(protectedPage||protectedApi){
    if(!await valid(request.cookies.get("cut_admin_session")?.value)){
-     if(path.startsWith("/api/"))return NextResponse.json({error:"Unauthorized"},{status:401});
-     return NextResponse.redirect(new URL("/admin",request.url));
+     if(protectedApi)return NextResponse.json({error:"Unauthorized"},{status:401});
+     return NextResponse.redirect(new URL("/ashu",request.url));
    }
  }
  return NextResponse.next();
 }
 
-export const config={matcher:["/admin/dashboard/:path*","/admin/reviews/:path*","/api/admin/dashboard/:path*","/api/admin/reviews/:path*"]};
+export const config={matcher:["/admin/dashboard/:path*","/admin/reviews/:path*","/ashu/dashboard/:path*","/api/admin/dashboard/:path*","/api/admin/reviews/:path*","/api/admin/universities/:path*"]};
