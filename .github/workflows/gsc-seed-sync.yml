@@ -1,0 +1,49 @@
+name: GSC trusted university seed sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 2 * * *'
+
+concurrency:
+  group: chinauni-gsc-seed
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install document extraction tools
+        run: sudo apt-get update -y && sudo apt-get install -y --no-install-recommends poppler-utils
+      - run: npm install --no-audit --no-fund
+      - name: Import trusted GSC China university seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GSC_UNIVERSITIES_URL: https://globalstudyconsult.com/universities
+          GSC_MAX_PROFILES: '2500'
+        run: node scripts/gsc-seed-import.mjs
+      - name: Crawl official university enrichment
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/official-program-import-all.mjs
+      - name: Enrich official university contacts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/official-contact-enrichment.mjs
+      - name: Enrich official campus and facilities records
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/official-campus-enrichment.mjs
+      - name: Normalize duplicates
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/dedupe-programs.mjs
+      - name: Clean obvious navigation artefacts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/clean-invalid-programs.mjs
