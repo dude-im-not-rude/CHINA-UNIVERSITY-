@@ -31,6 +31,10 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/official-program-import-all.mjs
+      - name: Enrich official university contacts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/official-contact-enrichment.mjs
       - name: Normalize duplicates
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
