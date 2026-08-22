@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Install document extraction tools
+        run: sudo apt-get update -y && sudo apt-get install -y --no-install-recommends poppler-utils
       - run: npm install --no-audit --no-fund
       - name: Import trusted GSC China university seed
         env:
