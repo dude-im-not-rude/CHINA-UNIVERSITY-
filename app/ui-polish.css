@@ -1,0 +1,54 @@
+/* ChinaUniTracker UI polish: calmer neutral dark palette, compact cards, motion and clear active states. */
+:root{--ui-bg:#0b0d12;--ui-surface:#11141b;--ui-surface-2:#151922;--ui-border:#292e3a;--ui-text:#eef1f6;--ui-muted:#9aa2b1;--ui-accent:#9aa7ff;--ui-accent-2:#7dd3fc;--ui-glow:rgba(154,167,255,.16)}
+html.dark-mode body{background:radial-gradient(900px 500px at 85% -10%,rgba(90,102,190,.13),transparent 65%),radial-gradient(700px 500px at -10% 20%,rgba(70,130,170,.08),transparent 60%),var(--ui-bg);color:var(--ui-text)}
+html.dark-mode .nav{background:rgba(11,13,18,.78);border-color:var(--ui-border);box-shadow:0 10px 35px rgba(0,0,0,.18)}
+html.dark-mode .brand span,html.dark-mode .eyebrow,html.dark-mode .tag{color:var(--ui-accent)}
+html.dark-mode .nav nav a:hover,html.dark-mode .nav nav a.active{color:var(--ui-accent-2)}
+html.dark-mode .nav nav a::after{background:linear-gradient(90deg,var(--ui-accent),var(--ui-accent-2))}
+html.dark-mode .hero-card,html.dark-mode .feature,html.dark-mode .uni-card,html.dark-mode .scholar-card,html.dark-mode .panel,html.dark-mode .compact-filters{background:linear-gradient(145deg,rgba(21,25,34,.94),rgba(14,17,24,.94));border-color:var(--ui-border);box-shadow:0 18px 50px rgba(0,0,0,.18)}
+html.dark-mode .feature:hover,html.dark-mode .uni-card:hover,html.dark-mode .scholar-card:hover{border-color:#46506a;box-shadow:0 22px 60px rgba(0,0,0,.3);transform:translateY(-5px)}
+html.dark-mode .uni-logo{background:#1a1f2a;color:#c0c7ff;border-color:#394154}
+html.dark-mode .btn.primary{background:linear-gradient(135deg,#6876ed,#8b5cf6);border-color:transparent;color:#fff;box-shadow:0 10px 30px rgba(104,118,237,.22)}
+html.dark-mode .btn.primary:hover{filter:brightness(1.08);box-shadow:0 14px 36px rgba(104,118,237,.3)}
+html.dark-mode .btn.secondary{background:#151922;border-color:#303747}
+html.dark-mode .compact-filter-row input,html.dark-mode .compact-filter-row select,html.dark-mode .filter-grid input,html.dark-mode .filter-grid select{background:#0d1016;border-color:#2d3340;color:var(--ui-text)}
+html.dark-mode .compact-filter-row input:focus,html.dark-mode .compact-filter-row select:focus,html.dark-mode .filter-grid input:focus,html.dark-mode .filter-grid select:focus{border-color:var(--ui-accent);box-shadow:0 0 0 4px var(--ui-glow)}
+html.dark-mode .toggle-check{background:#12161e;border-color:#2d3340}
+html.dark-mode .section.muted{background:rgba(17,20,27,.72);border-top:1px solid rgba(255,255,255,.025);border-bottom:1px solid rgba(255,255,255,.025)}
+html.dark-mode .chips span{background:#181d29;border-color:#30384a;color:#b9c2ff}
+html.dark-mode .rank-pill{background:#141821;border-color:#353c4d;color:#b9c2ff}
+html.dark-mode .program-link,html.dark-mode .panel a{color:#b7c0ff}
+html.dark-mode .site-footer{background:linear-gradient(145deg,#080a0f,#101522)}
+
+/* More information per screen: tighter directory cards. */
+.uni-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.uni-card{padding:14px;border-radius:14px;gap:11px}
+.uni-card .uni-logo{width:40px;height:40px;min-width:40px;border-radius:10px}
+.uni-card h3{font-size:14px;line-height:1.18}
+.uni-card p{font-size:11px}
+
+/* Soft page entrance + staggered card motion. */
+main{animation:uiPageIn .32s cubic-bezier(.2,.75,.25,1) both}
+.uni-card,.feature,.scholar-card,.panel{animation:uiCardIn .38s cubic-bezier(.2,.75,.25,1) both}
+.uni-card:nth-child(2),.feature:nth-child(2),.scholar-card:nth-child(2){animation-delay:.035s}.uni-card:nth-child(3),.feature:nth-child(3),.scholar-card:nth-child(3){animation-delay:.07s}.uni-card:nth-child(4){animation-delay:.105s}
+@keyframes uiPageIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes uiCardIn{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+
+/* Buttons and controls feel clickable without being noisy. */
+button,.btn,.filter-submit,.menu-fab{transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease,filter .18s ease}
+button:active,.btn:active,.filter-submit:active{transform:translateY(1px) scale(.985)}
+
+/* Light mode stays neutral instead of bright green/white. */
+html:not(.dark-mode) body{background:#eef1f5;color:#18202b}
+html:not(.dark-mode) .nav{background:rgba(238,241,245,.88);border-color:#d7dce5}
+html:not(.dark-mode) .brand span,html:not(.dark-mode) .eyebrow,html:not(.dark-mode) .tag{color:#4f5fa8}
+html:not(.dark-mode) .feature,html:not(.dark-mode) .uni-card,html:not(.dark-mode) .scholar-card,html:not(.dark-mode) .panel,html:not(.dark-mode) .compact-filters{background:#f8f9fb;border-color:#d9dee7;box-shadow:0 12px 35px rgba(30,40,60,.08)}
+html:not(.dark-mode) .section.muted{background:#e7ebf1}
+html:not(.dark-mode) .btn.primary{background:linear-gradient(135deg,#6675d9,#7c5ce8);color:#fff;border-color:transparent}
+html:not(.dark-mode) .btn.secondary{background:#fff;border-color:#d4dae4;color:#263044}
+html:not(.dark-mode) .uni-logo{background:#e9edf6;color:#4f5fa8;border-color:#cfd6e5}
+html:not(.dark-mode) .compact-filter-row input,html:not(.dark-mode) .compact-filter-row select,html:not(.dark-mode) .filter-grid input,html:not(.dark-mode) .filter-grid select{background:#fff;color:#1b2432;border-color:#cfd6e2}
+
+@media(max-width:1000px){.uni-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.uni-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.uni-card{padding:12px}.uni-card .uni-logo{width:38px;height:38px;min-width:38px}.uni-card h3{font-size:13px}}
+@media(prefers-reduced-motion:reduce){main,.uni-card,.feature,.scholar-card,.panel{animation:none}.btn,button{transition:none}}
