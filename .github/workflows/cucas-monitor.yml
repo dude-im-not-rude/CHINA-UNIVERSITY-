@@ -33,10 +33,14 @@ jobs:
             https://school.cucas.cn/|
             https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Crawl discovered official university programs
+      - name: Crawl official university programs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/official-program-import-v4.mjs
+      - name: Enrich official contacts and campuses
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/official-university-enrichment-v2.mjs
       - name: Collect useful university intelligence
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
