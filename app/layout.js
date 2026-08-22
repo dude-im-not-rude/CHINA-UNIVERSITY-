@@ -4,6 +4,7 @@ import "./mobile-fix.css";
 import "./controls.css";
 import "./theme.css";
 import "./ui-polish.css";
+import "./ui-fixes.css";
 import GlobalUI from "./components/global-ui";
 
 export const metadata={title:"ChinaUniTracker",description:"China university, scholarship and CSCA discovery platform"};
