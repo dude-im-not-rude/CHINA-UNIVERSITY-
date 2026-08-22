@@ -33,10 +33,14 @@ jobs:
             https://school.cucas.cn/|
             https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Crawl every discovered official university
+      - name: Crawl official programs with safe classification
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-program-import-all.mjs
+        run: node scripts/official-program-import-v4.mjs
+      - name: Monitor useful university intelligence
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/official-university-intelligence.mjs
       - name: Normalize duplicate program records
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
