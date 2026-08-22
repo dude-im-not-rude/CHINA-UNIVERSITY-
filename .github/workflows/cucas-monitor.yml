@@ -1,13 +1,10 @@
-name: CUCAS daily monitor
+name: Legacy CUCAS monitor (manual only)
 
 on:
-  # 08:00 IST = 02:30 UTC
-  schedule:
-    - cron: '30 2 * * *'
   workflow_dispatch:
 
 concurrency:
-  group: chinauni-cucas-daily
+  group: chinauni-cucas-legacy
   cancel-in-progress: false
 
 jobs:
@@ -20,20 +17,11 @@ jobs:
         with:
           node-version: 24
       - run: npm install --no-audit --no-fund
-      - name: Discover and import CUCAS data
+      - name: Legacy CUCAS discovery/import
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          CUCAS_SEED_URLS: >-
-            https://bachelor.cucas.cn/search?tag=2-137|
-            https://bachelor.cucas.cn/search?tag=2-48-109-0-0-0%2C14000-0-0-1-0-0-0-0-0-0|
-            https://bachelor.cucas.cn/search?tag=2-56-71-4%20or%205-0-6200%2C6600-0-0-0-2-0-0--0-0-0-0|
-            https://www.cucas.cn/index/bachelorcourse?lang=en|
-            https://www.cucas.cn/index/mastercourse?lang=en|
-            https://www.cucas.cn/index/chinesecourse?lang=en|
-            https://school.cucas.cn/|
-            https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Crawl every discovered official university
+      - name: Crawl official university sources
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node scripts/official-program-import-all.mjs
