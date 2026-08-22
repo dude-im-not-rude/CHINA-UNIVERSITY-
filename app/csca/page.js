@@ -1,86 +1,14 @@
 import Link from "next/link";
 
 const sessions = [
-  { label: "Latest completed session", date: "27 Jun 2026", registration: "1 Jun 2026, 14:00 – 7 Jun 2026, 14:00 (Beijing time)", status: "Completed" },
-  { label: "Next scheduled session", date: "December 2026", registration: "Not announced yet", status: "Upcoming" },
+  { label: "Latest completed session", date: "27 Jun 2026", registration: "1–7 Jun 2026 · 14:00 Beijing time", status: "Completed", note: "Registration times are shown in Beijing time (UTC+8)." },
+  { label: "Next scheduled session", date: "December 2026", registration: "Not published yet", status: "Upcoming", note: "Do not guess the exact date or registration window until CSCA publishes it." },
 ];
-
-const subjects = [
-  ["Mathematics", "Chinese / English · 60 min · 48 questions · 0–100"],
-  ["Physics", "Chinese / English · 60 min · 48 questions · 0–100"],
-  ["Chemistry", "Chinese / English · 60 min · 48 questions · 0–100"],
-  ["Professional Chinese — Humanities", "Chinese · 90 min · 80 questions · 0–100"],
-  ["Professional Chinese — STEM", "Chinese · 90 min · 80 questions · 0–100"],
-];
-
+const schedule = [["January 2026", "Completed", "Exact session date should be checked against the official notice"],["March 2026", "15 Mar 2026", "Completed"],["April 2026", "25 Apr 2026", "Completed"],["June 2026", "27 Jun 2026", "Completed"],["December 2026", "TBA", "Exact date and registration window not published yet"]];
+const subjects = [["Mathematics", "Chinese / English", "60 min", "48 questions", "0–100"],["Physics", "Chinese / English", "60 min", "48 questions", "0–100"],["Chemistry", "Chinese / English", "60 min", "48 questions", "0–100"],["Professional Chinese — Humanities", "Chinese", "90 min", "80 questions", "0–100"],["Professional Chinese — STEM", "Chinese", "90 min", "80 questions", "0–100"]];
+const fees = [["1 subject", "CNY 450", "Single-subject registration"],["2 or more subjects", "CNY 700", "Combined registration fee"]];
+const setup = [["01", "Check your university requirement", "Confirm the exact CSCA subject(s) required for your target Bachelor's program."],["02", "Create your CSCA registration", "Use the official registration portal and enter your personal/exam information."],["03", "Select session + subjects", "Choose the available session, exam format/location and required subjects."],["04", "Complete payment", "Review the fee shown by the official portal before submitting payment."],["05", "Finish test preparation", "Follow the current official instructions for computer, identity, test environment and exam-day checks."]];
 export const dynamic = "force-dynamic";
 
-export default function Page() {
-  return (
-    <main>
-      <Header />
-      <section className="page-head">
-        <div className="eyebrow">CSCA HUB</div>
-        <h1>CSCA exam guide</h1>
-        <p>Exam schedule, registration windows, subjects, results and official links — without making you hunt through three different pages.</p>
-      </section>
-      <section className="section">
-        <div className="notice">
-          <b>Official-source status:</b> CSCA confirms that exams are held in January, March, April, June and December. The December 2026 date and registration window have not been published on the official schedule yet, so we show them as <b>TBA</b> instead of guessing.
-        </div>
-        <div className="csca-grid" style={{ marginTop: 18 }}>
-          <div className="panel">
-            <h2>Exam timeline</h2>
-            <div className="timeline-stack">
-              {sessions.map((session) => (
-                <div className="timeline" key={session.label}>
-                  <div><span className="tag">{session.status}</span><h3>{session.label}</h3><b>{session.date}</b><span>Registration: {session.registration}</span></div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="panel">
-            <h2>Important dates</h2>
-            <ul>
-              <li><b>Previous exam:</b> 27 June 2026</li>
-              <li><b>Previous registration:</b> 1–7 June 2026</li>
-              <li><b>Next session:</b> December 2026</li>
-              <li><b>Next registration deadline:</b> TBA</li>
-              <li><b>Results:</b> normally within 7 working days for home-based and on-site computer tests; paper tests may take up to 14 working days.</li>
-            </ul>
-          </div>
-        </div>
-        <div className="csca-grid" style={{ marginTop: 18 }}>
-          <div className="panel">
-            <h2>Subjects & format</h2>
-            {subjects.map(([name, note]) => <div className="timeline" key={name}><div><b>{name}</b><span>{note}</span></div></div>)}
-          </div>
-          <div className="panel">
-            <h2>What to verify</h2>
-            <ul>
-              <li>Your university/program's required CSCA subjects</li>
-              <li>Current exam date and registration window</li>
-              <li>Exam format and available test location</li>
-              <li>Result release timing</li>
-              <li>Whether your target program is English-taught or Chinese-taught</li>
-            </ul>
-            <div className="chips small"><span>Official schedule</span><span>Updated from CSCA</span></div>
-          </div>
-        </div>
-        <div className="panel" style={{ marginTop: 18 }}>
-          <h2>Official CSCA</h2>
-          <p>Always use the official CSCA site for the final registration date, exam notice and your personal registration.</p>
-          <div className="filter-options">
-            <a className="btn primary" href="https://csca.cn/" target="_blank" rel="noreferrer">Official CSCA website ↗</a>
-            <a className="btn secondary" href="https://csca.cn/registration/process" target="_blank" rel="noreferrer">Registration process ↗</a>
-            <a className="btn secondary" href="https://csca.cn/about/examintro" target="_blank" rel="noreferrer">Exam & subjects ↗</a>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function Header() {
-  return <header className="nav"><Link className="brand" href="/">China<span>Uni</span>Tracker</Link><nav><Link href="/universities">Universities</Link><Link href="/scholarships">Scholarships</Link><Link href="/csca">CSCA</Link><Link href="/contact">Contact</Link></nav></header>;
-}
+export default function Page(){return <main><style>{`@media(max-width:700px){.csca-two{grid-template-columns:1fr!important}.csca-session-item{display:block!important}.csca-session-item .status{display:inline-block;margin-bottom:10px}.csca-schedule-row{grid-template-columns:1fr!important;gap:5px!important}.csca-subject{display:block!important}.csca-subject span{display:block;text-align:left!important;margin-top:5px}.csca-fees,.csca-setup{grid-template-columns:1fr!important}.csca-actions .btn{width:100%}}.csca-two{display:grid;grid-template-columns:1fr 1fr;gap:15px}.csca-session{display:grid;gap:12px}.csca-session-item{display:grid;grid-template-columns:96px 1fr;gap:15px;align-items:start;padding:16px;border:1px solid #33432e;border-radius:14px;background:#0f160f}.csca-session-item .status{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:#91c46a}.csca-session-item.upcoming{border-left:3px solid #d2ad5c}.csca-session-item.completed{border-left:3px solid #91c46a}.csca-session-item h3{margin:0 0 5px;font-size:15px}.csca-session-item strong{font-size:20px}.csca-session-item p{margin:8px 0 4px;font-size:12px}.csca-session-item small,.csca-schedule-row small{color:#83907f;line-height:1.5}.csca-schedule{display:grid}.csca-schedule-row{display:grid;grid-template-columns:1fr 1fr;padding:14px 0;border-bottom:1px solid #263126}.csca-schedule-row b,.csca-schedule-row span{display:block}.csca-schedule-row span{color:#9bc77e;font-size:12px;margin-top:4px}.csca-fees,.csca-setup{display:grid;grid-template-columns:1fr 1fr;gap:10px}.csca-fee{padding:18px;border:1px solid #33432e;border-radius:14px;background:#172217}.csca-fee span,.csca-fee strong,.csca-fee small{display:block}.csca-fee span{font-size:11px;color:#91b975}.csca-fee strong{font-size:27px;margin:5px 0}.csca-fee small{color:#83907f}.csca-step{padding:15px;border:1px solid #33432e;border-radius:14px;background:#0f160f}.csca-step b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#1d2a1b;color:#a5cb88;margin-bottom:10px}.csca-step strong{display:block;font-size:14px}.csca-step p{font-size:11px!important;margin-bottom:0}.csca-subjects{display:grid}.csca-subject{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid #263126}.csca-subject h3{font-size:14px;margin:0}.csca-subject span{text-align:right;color:#83907f;font-size:11px}.csca-format{margin-top:15px;padding:13px;border:1px solid #33432e;border-radius:12px;background:#172217;color:#9baa98;font-size:11px;line-height:1.6}.csca-format b{color:#dcebd5}.csca-format span{display:block;margin-top:5px}.csca-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}`}</style><Header/><section className="page-head reveal"><div className="eyebrow">CSCA HUB · 2026</div><h1>CSCA exam guide</h1><p>Exam dates, registration windows, subjects, fees and registration setup in one place. When an official date is not published, it is clearly marked TBA.</p></section><section className="section"><div className="notice"><b>Official-source status:</b> The current CSCA schedule confirms the June 2026 session and a December 2026 session. The exact December date and registration window are not published here, so we do not invent them.</div><div className="csca-two" style={{marginTop:15}}><div className="panel"><div className="section-head compact-head"><div><h2>Exam timeline</h2><p>Latest completed session and next known session.</p></div></div><div className="csca-session">{sessions.map(x=><article className={`csca-session-item ${x.status.toLowerCase()}`} key={x.label}><div className="status">{x.status}</div><div><h3>{x.label}</h3><strong>{x.date}</strong><p><b>Registration:</b> {x.registration}</p><small>{x.note}</small></div></article>)}</div></div><div className="panel"><h2>2026 schedule</h2><div className="csca-schedule">{schedule.map(([period,date,state])=><div className="csca-schedule-row" key={period}><div><b>{period}</b><span>{date}</span></div><small>{state}</small></div>)}</div></div></div><div className="csca-two"><div className="panel"><h2>Exam fees</h2><p>Current listed registration charges. Verify the amount on the official registration portal before payment.</p><div className="csca-fees">{fees.map(([label,amount,note])=><div className="csca-fee" key={label}><span>{label}</span><strong>{amount}</strong><small>{note}</small></div>)}</div></div><div className="panel"><h2>Registration setup</h2><div className="csca-setup">{setup.map(([n,title,text])=><div className="csca-step" key={n}><b>{n}</b><strong>{title}</strong><p>{text}</p></div>)}</div></div></div><div className="panel"><h2>Subjects & format</h2><div className="csca-subjects">{subjects.map(([name,lang,duration,questions,score])=><div className="csca-subject" key={name}><h3>{name}</h3><span>{lang}</span><span>{duration}</span><span>{questions}</span><span>{score}</span></div>)}</div><div className="csca-format"><b>Formats:</b> home-based online · centralized computer-based · paper-based<span><b>Results:</b> timing depends on the test format and current session notice.</span></div></div><div className="csca-two"><div className="panel"><h2>What to verify</h2><ul><li>Your university/program's required CSCA subjects</li><li>Current exam date and registration window</li><li>Available exam format and test location</li><li>Result release timing</li><li>Whether your target program is English-taught or Chinese-taught</li><li>Any university-specific score requirement</li></ul></div><div className="panel"><h2>Official CSCA</h2><p>Use the official CSCA site for final registration dates, payment, account creation and personal exam booking.</p><div className="csca-actions"><a className="btn primary" href="https://csca.cn/" target="_blank" rel="noreferrer">Official CSCA website ↗</a><a className="btn secondary" href="https://csca.cn/registration/process" target="_blank" rel="noreferrer">Registration process ↗</a><a className="btn secondary" href="https://csca.cn/about/examintro" target="_blank" rel="noreferrer">Exam, subjects & fees ↗</a></div></div></div></section></main>}
+function Header(){return <header className="nav"><Link className="brand" href="/">China<span>Uni</span>Tracker</Link><nav><Link href="/universities">Universities</Link><Link href="/scholarships">Scholarships</Link><Link href="/csca">CSCA</Link><Link href="/contact">Contact</Link></nav></header>}
