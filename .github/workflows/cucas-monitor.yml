@@ -25,9 +25,9 @@ jobs:
       - name: Discover full CUCAS university catalog
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          CUCAS_MAX_PAGES_PER_SEED: '40'
-          CUCAS_MAX_DISCOVERY_PAGES: '500'
-        run: node scripts/discover-all-cucas-universities.mjs
+          CUCAS_MAX_PAGES_PER_SEED: '80'
+          CUCAS_MAX_DISCOVERY_PAGES: '1000'
+        run: node scripts/discover-all-cucas-universities-v2.mjs
       - name: Discover and import CUCAS data
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -38,25 +38,26 @@ jobs:
             https://www.cucas.cn/index/bachelorcourse?lang=en|
             https://www.cucas.cn/index/mastercourse?lang=en|
             https://www.cucas.cn/index/chinesecourse?lang=en|
+            https://www.cucas.cn/index/nondegreecourse?lang=en|
             https://school.cucas.cn/|
             https://city.cucas.cn/
         run: node scripts/cucas-monitor.mjs cucas
-      - name: Crawl official university programs and documents
+      - name: Crawl official university programs, non-degree offerings and documents
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-program-import-v4.mjs
-      - name: Persist official PDFs and enrich requirements
+          OFFICIAL_MAX_PAGES: '120'
+          OFFICIAL_MAX_DOCS: '40'
+        run: node scripts/official-program-import-v7.mjs
+      - name: Enrich official contacts, locations, assets and facilities
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/persist-official-documents.mjs
-      - name: Enrich official contacts and campuses
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-university-enrichment-v2.mjs
+          ENRICH_MAX_PAGES: '60'
+        run: node scripts/official-university-enrichment-v3.mjs
       - name: Collect useful university intelligence
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/official-university-intelligence.mjs
+          INTEL_MAX_PAGES: '100'
+        run: node scripts/official-university-intelligence-v3.mjs
       - name: Normalize duplicate program records
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
